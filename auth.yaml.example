@@ -1,0 +1,6 @@
+auth:
+  email: "someone@somewhere.net"
+  client_secret: "/path/to/secrete/key.pem"
+  client_id: "my-client-id@dev.service-account.com"
+  oauth_scope:
+      - "https://www.googleapis.com/auth/userinfo.email"

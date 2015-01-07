@@ -1,0 +1,49 @@
+#name of the test
+name: Test Shortened urls
+
+# service information
+service:
+    api: "urlshortener"
+    version: "v1"
+    discovery_url: "https://www.googleapis.com/discovery/v1/apis/urlshortener/v1/rest"
+
+# this section is not used by the script, but can be helpful for the commands
+websites : &w01 "http://google.com"
+websites : &w02 "http://google.com/"
+
+# the commands
+commands:
+  - url.insert:
+      body: {"longUrl" : *w01}
+    print_result: !expr id
+    save_result: compressed_1
+    check_result: {
+                    # the urlshortener service adds a '/' at the end
+                    "longUrl" : *w02
+                  }
+
+  - url.insert:
+      body: {"longUrl" : *w02}
+    print_result: true
+    save_result: compressed_2
+    check_result: {
+                    # this should have the same id as the previous one
+                    "id" : !expr compressed_1.id,
+                    "longUrl" : *w02
+                  }
+
+  - url.insert:
+      body: {"longUrl" : *w02}
+    print_result: true
+    save_result: compressed_2
+    check_result: {
+                    # make it fail!
+                    "longUrl" : "aaa"
+                  }
+
+  - url.get:
+      shortUrl: !expr compressed_1.id
+    print_result: true
+    check_result: {
+                    "longUrl" : "#r#http[s]?://google.com/?"
+                  }

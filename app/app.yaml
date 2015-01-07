@@ -1,0 +1,15 @@
+application: lumrest
+version: 1
+runtime: python27
+threadsafe: true
+api_version: 1
+
+handlers:
+- url: /test
+  script: test
+
+libraries:
+- name: ssl
+  version: latest
+- name: endpoints
+  version: 1.0
