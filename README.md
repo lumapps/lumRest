@@ -9,8 +9,7 @@ package, for instance `python-yaml` on Ubuntu.
 
 The basic usage can be found by running the script with a `-h` option.
 ```bash
-./lumrest.py -h
-usage: lumrest.py [-h] [--parser PARSER] [--auth AUTH_CONFIG_FILE] SCENARIO_FILE
+usage: lumrest.py [-h] [--auth AUTH_CONFIG_FILE] SCENARIO_FILE
 
 Endpoint tester
 
@@ -18,12 +17,16 @@ positional arguments:
   SCENARIO_FILE         The path to the scenario file
 
 optional arguments:
-  -h, --help               show this help message and exit
-  --parser PARSER          A python file that is used to parse the scenario commands
-  --auth AUTH_CONFIG_FILE  The configuration file containg authentication information
+  -h, --help            show this help message and exit
+  --auth AUTH_CONFIG_FILE
+                        The configuration file containg authentication
+                        information
 ```
 
-The script has one mandatory argument (the scenario file) and two optional (authentication config file and a command parser). In the following, we will use the [urlshortener API](https://developers.google.com/url-shortener/) from Google.
+The script has one mandatory argument (the scenario file) and another optional
+(authentication configuration file). In the following, we will
+use the [urlshortener API](https://developers.google.com/url-shortener/) from
+Google.
 
 ## Scenarios ##
 The scenario file has to be in `yaml` format. The possible keys are:
