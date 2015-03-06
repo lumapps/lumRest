@@ -80,6 +80,7 @@ class CommandParser():
         result_name = None
         print_result = False
         export_result = None
+        eval_expr = None
 
         if command.has_key('check_result'):
             check_json_val = command.pop('check_result')
@@ -103,6 +104,9 @@ class CommandParser():
 
         if command.has_key('export_result'):
             export_result = command.pop('export_result')
+
+        if command.has_key('eval_expr'):
+            eval_expr = command.pop('eval_expr')
 
         if len(command.keys()) != 1:
             raise ValueError("You must provide one and only one endpoint per command, see the manual")
@@ -159,6 +163,12 @@ class CommandParser():
                                .format(endpoint.replace("\.execute()", ""), msg))
         print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
+        if eval_expr:
+            if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
+                exec(eval_expr)
+            elif isinstance(eval_expr, list):
+                for expr in eval_expr:
+                    exec(expr)
 
         if print_result == True:
             print ju.info_color
