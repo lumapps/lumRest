@@ -67,7 +67,7 @@ class CommandParser():
         for command in commands:
             try:
                 self.__parse_command(command, self.service, self.scenario_root)
-            except Exception, e:
+            except (ValueError, RuntimeError) as e:
                 print "{}{}Unable to execute command:{} {}{}{}\n{}{}{}\n"\
                   .format(ju.error_color, ju.bold, ju.end_color,
                           ju.error_color_detail, command.keys()[0],
@@ -86,7 +86,7 @@ class CommandParser():
             if isinstance(check_json_val, dict):
                 json_pattern = check_json_val
             elif isinstance(check_json_val, str) or isinstance(check_json_val, unicode):
-                check_json_file = os.path.join(scenario_root, check_json)
+                check_json_file = os.path.join(scenario_root, check_json_val)
 
                 # check that there is a check file
                 if not os.path.isfile(check_json_file):
