@@ -10,22 +10,29 @@ def main():
     parser = argparse.ArgumentParser(description='Endpoint tester')
     parser.add_argument("--auth", metavar='AUTH_CONFIG_FILE', type=str,
                         help='The configuration file containg authentication information')
-    parser.add_argument("scenario_file", metavar='SCENARIO_FILE', type=str,
+    parser.add_argument("scenario_file", metavar='SCENARIO_FILE', type=str, nargs="?",
                         help='The path to the scenario file')
     args = parser.parse_args()
 
-    scenario_root = os.path.abspath(os.path.join(os.path.abspath(args.scenario_file), os.pardir))  
-    scenario_file_path = os.path.abspath(args.scenario_file)
+    if args.scenario_file:
+        scenario_root = os.path.abspath(os.path.join(os.path.abspath(args.scenario_file), os.pardir))
+        scenario_file_path = os.path.abspath(args.scenario_file)
 
-    # check that there is a scenario file
-    if not os.path.isfile(scenario_file_path):
-        print "{} does not exist".format(scenario_file_path)
-        return -1
+        # check that there is a scenario file
+        if not os.path.isfile(scenario_file_path):
+            print "{} does not exist".format(scenario_file_path)
+            return -1
 
-    with open(scenario_file_path, 'r') as scene_file:
+        with open(scenario_file_path, 'r') as scene_file:
+            yaml.add_constructor('!expr', expr_constructor)
+            yaml.add_constructor('!json', json_constructor)
+            scene = yaml.load(scene_file)
+    else:
+        scenario_root = os.path.abspath(os.path.join(os.path.abspath("."), os.pardir))
         yaml.add_constructor('!expr', expr_constructor)
         yaml.add_constructor('!json', json_constructor)
-        scene = yaml.load(scene_file)
+        scene = yaml.load(sys.stdin.read())
+
 
     if args.auth:
         # check that there is a config file
