@@ -84,6 +84,8 @@ class CommandParser():
         print_result = False
         export_result = None
         eval_expr = None
+        repeat = 1
+        repeatList = None
 
         if command.has_key('check_result'):
             check_json_val = command.pop('check_result')
@@ -111,95 +113,113 @@ class CommandParser():
         if command.has_key('eval_expr'):
             eval_expr = command.pop('eval_expr')
 
+        if command.has_key('repeat'):
+            repeat = command.pop('repeat')
+            if isinstance(repeat, str) or isinstance(repeat, unicode):
+                #todo: replace this with a jsonpath expression
+                repeatFormat = repeat.split(".")
+                repeatList = self.output_results
+                for keyVal in repeatFormat:
+                    repeatList = repeatList[keyVal]
+                repeat = len(repeatList)
+
+                #match = self.expression_matcher.match(repeat)
+                #if match:
+                    ## raises a ValueError, to be catched upper in the stack
+                    #val = self.__parse_expression(match.group(1))
+                #else:
+                    #repeat = None
+
         if len(command.keys()) != 1:
             raise ValueError("You must provide one and only one endpoint per command, see the manual")
 
         # build the endpoint request
         key = command.keys()[0]
 
-        # put the () for the endpoints
-        endpoint = 'service.' + key.replace('.', '().')
-        endpoint += '('
+        #import pdb; pdb.set_trace()
+        for i in xrange(repeat):
+            # put the () for the endpoints
+            endpoint = 'service.' + key.replace('.', '().')
+            endpoint += '('
 
-        endpoint_args = []
-        if isinstance(command[key], dict):
-            for arg in command[key]:
-                val = command[key][arg]
+            endpoint_args = []
+            if isinstance(command[key], dict):
+                for arg in command[key]:
+                    if repeat > 1:
+                        #todo: replace this with a jsonpath expression
+                        val = command[key][arg]
+                        val, argKey = val.split('@')
+                        repeatFormat = val.split(".")
+                        #import pdb; pdb.set_trace()
+                        tempList = self.output_results
+                        for keyVal in repeatFormat:
+                            tempList = tempList[keyVal]
+                        val = tempList[i][argKey]
+                    else:
+                        val = command[key][arg]
 
-                # for body, read the json file
-                if arg == 'body':
-                    # if we do not receive a json object, load it from a file
-                    if not isinstance(val, dict):
-                        body_file = os.path.join(scenario_root, val)
-                        if not os.path.isfile(body_file):
-                            print "{} does not exist".format(body_file)
-                            continue
+                    # for body, read the json file
+                    if arg == 'body':
+                        # if we do not receive a json object, load it from a file
+                        if not isinstance(val, dict):
+                            match = self.expression_matcher.match(val)
+                            if match:
+                                # raises a ValueError, to be catched upper in the stack
+                                val = self.__parse_expression(match.group(1))
+                            else:
+                                body_file = os.path.join(scenario_root, val)
+                                if not os.path.isfile(body_file):
+                                    print "{} does not exist".format(body_file)
+                                    continue
 
-                        with open(body_file, 'r') as body:
-                            val = json.load(body)
+                                with open(body_file, 'r') as body:
+                                    val = json.load(body)
+                    else:
+                        if isinstance(val, str) or isinstance(val, unicode):
+                            # if we have a variable name check in the output_results
+                            match = self.expression_matcher.match(val)
+                            if match:
+                                # raises a ValueError, to be catched upper in the stack
+                                val = self.__parse_expression(match.group(1))
+
+                            val = '"' + str(val) + '"'
+
+                    endpoint_args.append("{} = {}".format(arg, val))
+
+            endpoint += ','.join(endpoint_args) + ').execute()'
+
+            print "\n{}{}Executing : {}{}".format(ju.bold, ju.yellow, key, ju.end_color)
+
+            exec_time = time.time()
+            # run the endpoint request
+            try:
+                result = eval(endpoint)
+            except Exception, e:
+                if len(e.message) == 0:
+                    msg = e.__str__()
                 else:
-                    if isinstance(val, str) or isinstance(val, unicode):
-                        # if we have a variable name check in the output_results
-                        match = self.expression_matcher.match(val)
-                        if match:
-                            # raises a ValueError, to be catched upper in the stack
-                            val = self.__parse_expression(match.group(1))
+                    msg = e.message
+                raise RuntimeError("The executed command was: {}\nMessage: {}"\
+                                .format(endpoint.replace("\.execute()", ""), msg))
+            print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
-                        val = '"' + str(val) + '"'
+            if eval_expr:
+                if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
+                    exec(eval_expr)
+                elif isinstance(eval_expr, list):
+                    for expr in eval_expr:
+                        exec(expr)
 
-                endpoint_args.append("{} = {}".format(arg, val))
-
-        endpoint += ','.join(endpoint_args) + ').execute()'
-
-        print "\n{}{}Executing : {}{}".format(ju.bold, ju.yellow, key, ju.end_color)
-
-        exec_time = time.time()
-        # run the endpoint request
-        try:
-            result = eval(endpoint)
-        except Exception, e:
-            if len(e.message) == 0:
-                msg = e.__str__()
-            else:
-                msg = e.message
-            raise RuntimeError("The executed command was: {}\nMessage: {}"\
-                               .format(endpoint.replace("\.execute()", ""), msg))
-        print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
-
-        if eval_expr:
-            if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
-                exec(eval_expr)
-            elif isinstance(eval_expr, list):
-                for expr in eval_expr:
-                    exec(expr)
-
-        if print_result == True:
-            print ju.info_color
-            print "Result JSON:"
-            pretty_json(result)
-            print ju.end_color
-        elif isinstance(print_result, str) or isinstance(print_result, unicode):
-            # we have an expression!
-            match = self.expression_matcher.match(print_result)
-            if match:
-                val = None
-                try:
-                    val = self.__parse_expression(match.group(1), container = result)
-                except Exception, e:
-                    if self.debug:
-                        print traceback.format_exc()
-                    print e
-
-                if val:
-                    print ju.info_color
-                    print "Content of {}:".format(match.group(1))
-                    pretty_json(val)
-                    print ju.end_color
-        elif isinstance(print_result, list):
-            for expr in print_result:
+            if print_result == True:
+                print ju.info_color
+                print "Result JSON:"
+                pretty_json(result)
+                print ju.end_color
+            elif isinstance(print_result, str) or isinstance(print_result, unicode):
                 # we have an expression!
-                match = self.expression_matcher.match(expr)
+                match = self.expression_matcher.match(print_result)
                 if match:
+                    val = None
                     try:
                         val = self.__parse_expression(match.group(1), container = result)
                     except Exception, e:
@@ -212,31 +232,54 @@ class CommandParser():
                         print "Content of {}:".format(match.group(1))
                         pretty_json(val)
                         print ju.end_color
-                    val = None
+            elif isinstance(print_result, list):
+                for expr in print_result:
+                    # we have an expression!
+                    match = self.expression_matcher.match(expr)
+                    if match:
+                        try:
+                            val = self.__parse_expression(match.group(1), container = result)
+                        except Exception, e:
+                            if self.debug:
+                                print traceback.format_exc()
+                            print e
 
-        if result_name:
-            self.output_results[result_name] = result
+                        if val:
+                            print ju.info_color
+                            print "Content of {}:".format(match.group(1))
+                            pretty_json(val)
+                            print ju.end_color
+                        val = None
 
-        if export_result:
-            with open(export_result, 'w') as f:
-                json.dump(result, f, indent=4, separators=(',', ': '))
+            if result_name:
+                if repeat > 1:
+                    if not self.output_results.has_key(result_name):
+                        self.output_results[result_name] = []
 
-        if json_pattern:
-            # replace the expressions in the json pattern
-            dump = json.dumps(json_pattern)
-            did_match = match = self.expression_matcher.search(dump)
-            while match:
-                dump = self.expression_matcher.sub(self.__parse_expression(match.group(1)), dump)
-                match = self.expression_matcher.search(dump)
+                    self.output_results[result_name].append(result)
+                else:
+                    self.output_results[result_name] = result
 
-            if did_match:
-                json_pattern = json.loads(dump)
+            if export_result:
+                with open("{}{}".format(export_result, i), 'w') as f:
+                    json.dump(result, f, indent=4, separators=(',', ': '))
 
-            try :
-                check_json(result, json_pattern)
-            except AssertionError, e:
-                print "Assertion failed : "
-                print e.message
+            if json_pattern:
+                # replace the expressions in the json pattern
+                dump = json.dumps(json_pattern)
+                did_match = match = self.expression_matcher.search(dump)
+                while match:
+                    dump = self.expression_matcher.sub(self.__parse_expression(match.group(1)), dump)
+                    match = self.expression_matcher.search(dump)
+
+                if did_match:
+                    json_pattern = json.loads(dump)
+
+                try :
+                    check_json(result, json_pattern)
+                except AssertionError, e:
+                    print "Assertion failed : "
+                    print e.message
 
     def __parse_expression(self, expression, container = None):
         """
