@@ -46,7 +46,7 @@ def main():
         config = {}
 
     command_parser = default.CommandParser(config, scene, scenario_root)
-    command_parser.parse()
+    return command_parser.parse()
 
 if __name__ == "__main__":
     sys.exit(main())

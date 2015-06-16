@@ -64,6 +64,7 @@ class CommandParser():
             raise ValueError("The scenario file has to contain a `commands` section")
 
         commands = self.scenario['commands']
+        error = False
         for command in commands:
             try:
                 self.__parse_command(command, self.service, self.scenario_root)
@@ -74,6 +75,8 @@ class CommandParser():
                           ju.error_color, ju.bold, e, ju.end_color)
                 if self.debug:
                     print traceback.format_exc()
+                error = True
+        return error
 
     def __parse_command(self, command, service, scenario_root):
         json_pattern = None
