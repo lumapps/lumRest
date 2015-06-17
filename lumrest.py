@@ -12,6 +12,7 @@ def main():
                         help='The configuration file containg authentication information')
     parser.add_argument("scenario_file", metavar='SCENARIO_FILE', type=str, nargs="?",
                         help='The path to the scenario file')
+    parser.add_argument("-X", action="store_true", default=False, help='Stop at the first error')
     args = parser.parse_args()
 
     if args.scenario_file:
@@ -45,7 +46,7 @@ def main():
     else:
         config = {}
 
-    command_parser = default.CommandParser(config, scene, scenario_root)
+    command_parser = default.CommandParser(config, scene, scenario_root, exit_on_error=args.X)
     return command_parser.parse()
 
 if __name__ == "__main__":

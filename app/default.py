@@ -9,12 +9,13 @@ class CommandParser():
     The Parser class
     """
 
-    def __init__(self, config, scene, scene_root):
+    def __init__(self, config, scene, scene_root, exit_on_error=False):
         self.output_results = {}
         self.expression_matcher = re.compile("{{([^{}]*)}}")
         self.scenario = scene
         self.scenario_root = scene_root
         self.config = config
+        self.exit_on_error = exit_on_error
 
         if self.config.has_key('debug'):
             self.debug = self.config['debug']
@@ -76,6 +77,8 @@ class CommandParser():
                 if self.debug:
                     print traceback.format_exc()
                 error = True
+                if self.exit_on_error:
+                    return error
         return error
 
     def __parse_command(self, command, service, scenario_root):
