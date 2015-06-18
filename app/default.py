@@ -69,15 +69,17 @@ class CommandParser():
         for command in commands:
             try:
                 self.__parse_command(command, self.service, self.scenario_root)
-            except Exception, e:
-                print "{}{}Unable to execute command:{} {}{}{}\n{}{}{}\n"\
-                  .format(ju.error_color, ju.bold, ju.end_color,
-                          ju.error_color_detail, command.keys()[0],
-                          ju.error_color, ju.bold, e, ju.end_color)
-                if self.debug:
-                    print traceback.format_exc()
+            except AssertionError:
                 error = True
-                if self.exit_on_error:
+            except Exception, e:
+                print "{}{}Unable to execute command:{} {}{}{}\n{}{}{}\n".format(
+                    ju.error_color, ju.bold, ju.end_color,
+                    ju.error_color_detail, command.keys()[0],
+                    ju.error_color, ju.bold, e, ju.end_color)
+                print traceback.format_exc()
+                error = True
+            finally:
+                if error and self.exit_on_error:
                     return error
         return error
 
@@ -278,13 +280,9 @@ class CommandParser():
                 if did_match:
                     json_pattern = json.loads(dump)
 
-                try :
-                    check_json(result, json_pattern)
-                except AssertionError, e:
-                    print "Assertion failed : "
-                    print e.message
+                check_json(result, json_pattern, exit_on_error=self.exit_on_error)
 
-    def __parse_expression(self, expression, container = None):
+    def __parse_expression(self, expression, container=None):
         """
         Parses the jsonpath expression in {self.output_results} and return its result
         """
