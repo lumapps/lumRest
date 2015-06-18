@@ -89,6 +89,7 @@ class CommandParser():
         print_result = False
         export_result = None
         eval_expr = None
+        pre_eval_expr = None
         repeat = 1
         repeatList = None
 
@@ -117,6 +118,9 @@ class CommandParser():
 
         if command.has_key('eval_expr'):
             eval_expr = command.pop('eval_expr')
+
+        if command.has_key('pre_eval_expr'):
+            pre_eval_expr = command.pop('pre_eval_expr')
 
         if command.has_key('repeat'):
             repeat = command.pop('repeat')
@@ -179,6 +183,14 @@ class CommandParser():
 
                                 with open(body_file, 'r') as body:
                                     val = json.load(body)
+
+                        if pre_eval_expr:
+                            if isinstance(pre_eval_expr, str) or isinstance(pre_eval_expr, unicode):
+                                exec(pre_eval_expr)
+                            elif isinstance(pre_eval_expr, list):
+                                for expr in pre_eval_expr:
+                                    exec(expr)
+
                     else:
                         if isinstance(val, str) or isinstance(val, unicode):
                             # if we have a variable name check in the output_results
@@ -214,6 +226,19 @@ class CommandParser():
                 elif isinstance(eval_expr, list):
                     for expr in eval_expr:
                         exec(expr)
+
+            if result_name:
+                if repeat > 1:
+                    if not self.output_results.has_key(result_name):
+                        self.output_results[result_name] = []
+
+                    self.output_results[result_name].append(result)
+                else:
+                    self.output_results[result_name] = result
+
+            if export_result:
+                with open("{}{}".format(export_result, i), 'w') as f:
+                    json.dump(result, f, indent=4, separators=(',', ': '))
 
             if print_result == True:
                 print ju.info_color
@@ -255,19 +280,6 @@ class CommandParser():
                             pretty_json(val)
                             print ju.end_color
                         val = None
-
-            if result_name:
-                if repeat > 1:
-                    if not self.output_results.has_key(result_name):
-                        self.output_results[result_name] = []
-
-                    self.output_results[result_name].append(result)
-                else:
-                    self.output_results[result_name] = result
-
-            if export_result:
-                with open("{}{}".format(export_result, i), 'w') as f:
-                    json.dump(result, f, indent=4, separators=(',', ': '))
 
             if json_pattern:
                 # replace the expressions in the json pattern
