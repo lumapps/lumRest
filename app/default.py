@@ -234,6 +234,9 @@ class CommandParser():
                     "HTTP status code is {} and expected is {}.".format(status, check_code)
                 ))
 
+            elif int(check_code) - 200 >= 100:
+                return
+
             if eval_expr:
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
                     exec(eval_expr)
