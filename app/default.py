@@ -92,6 +92,7 @@ class CommandParser():
         pre_eval_expr = None
         repeat = 1
         repeatList = None
+        check_code = 200
 
         if command.has_key('check_result'):
             check_json_val = command.pop('check_result')
@@ -109,6 +110,9 @@ class CommandParser():
 
         if command.has_key('save_result'):
             result_name = command.pop('save_result')
+
+        if command.has_key('check_code'):
+            check_code = command.pop('check_code')
 
         if command.has_key('print_result'):
             print_result = command.pop('print_result')
@@ -209,16 +213,26 @@ class CommandParser():
 
             exec_time = time.time()
             # run the endpoint request
+            status = 200
             try:
                 result = eval(endpoint)
             except Exception, e:
-                if len(e.message) == 0:
-                    msg = e.__str__()
+                if check_code and e.resp["status"] == str(check_code):
+                    status = check_code
                 else:
-                    msg = e.message
-                raise RuntimeError("The executed command was: {}\nMessage: {}"\
-                                .format(endpoint.replace("\.execute()", ""), msg))
+                    if len(e.message) == 0:
+                        msg = e.__str__()
+                    else:
+                        msg = e.message
+                    raise RuntimeError("The executed command was: {}\nMessage: {}"\
+                                       .format(endpoint.replace("\.execute()", ""), msg))
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
+
+            if status != check_code:
+                raise RuntimeError("The executed command was: {}\nMessage: {}".format(
+                    endpoint.replace("\.execute()", ""),
+                    "HTTP status code is {} and expected is {}.".format(status, check_code)
+                ))
 
             if eval_expr:
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
