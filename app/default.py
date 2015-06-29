@@ -217,7 +217,7 @@ class CommandParser():
             try:
                 result = eval(endpoint)
             except Exception, e:
-                if check_code and e.resp["status"] == str(check_code):
+                if check_code and hasattr(e, 'resp') and e.resp["status"] == str(check_code):
                     status = check_code
                 else:
                     if len(e.message) == 0:
