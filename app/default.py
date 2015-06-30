@@ -188,12 +188,16 @@ class CommandParser():
                                 with open(body_file, 'r') as body:
                                     val = json.load(body)
 
+                        #parse expressions in the body
+                        val = self._parse_body(val)
+
                         if pre_eval_expr:
                             if isinstance(pre_eval_expr, str) or isinstance(pre_eval_expr, unicode):
                                 exec(pre_eval_expr)
                             elif isinstance(pre_eval_expr, list):
                                 for expr in pre_eval_expr:
                                     exec(expr)
+
 
                     else:
                         if isinstance(val, str) or isinstance(val, unicode):
@@ -310,6 +314,22 @@ class CommandParser():
                     json_pattern = json.loads(dump)
 
                 check_json(result, json_pattern, exit_on_error=self.exit_on_error)
+
+    def _parse_body(self, body):
+        for key, val in body.iteritems():
+            if isinstance(val, unicode) or isinstance(val, str):
+                match = self.expression_matcher.match(val)
+                if match:
+                    print key, val
+                    val = self.__parse_expression(match.group(1))
+                    body[key] = val
+            elif isinstance(val, list):
+                for idx, sub_val in enumerate(val):
+                    body[key][idx] = self._parse_body(sub_val)
+            elif isinstance(val, dict):
+                self._parse_body(val)
+        return body
+
 
     def __parse_expression(self, expression, container=None):
         """
