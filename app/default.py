@@ -324,7 +324,7 @@ class CommandParser():
                     body[key] = val
             elif isinstance(val, list):
                 for idx, sub_val in enumerate(val):
-                    if isinstance(val, dict):
+                    if isinstance(sub_val, dict):
                         body[key][idx] = self._parse_body(sub_val)
 
             elif isinstance(val, dict):
