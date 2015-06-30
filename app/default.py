@@ -320,12 +320,13 @@ class CommandParser():
             if isinstance(val, unicode) or isinstance(val, str):
                 match = self.expression_matcher.match(val)
                 if match:
-                    print key, val
                     val = self.__parse_expression(match.group(1))
                     body[key] = val
             elif isinstance(val, list):
                 for idx, sub_val in enumerate(val):
-                    body[key][idx] = self._parse_body(sub_val)
+                    if isinstance(val, dict):
+                        body[key][idx] = self._parse_body(sub_val)
+
             elif isinstance(val, dict):
                 self._parse_body(val)
         return body
