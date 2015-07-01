@@ -73,6 +73,13 @@ def light_assert(exp, message, exit_on_error=False):
 def check_json(result, expectation, path="$", exit_on_error=False):
     no_error = True
     orig_path = path
+
+    if isinstance(expectation, unicode) or isinstance(expectation, str):
+        expectation = {'':expectation}
+
+    if isinstance(result, unicode) or isinstance(result, str):
+        result = {'':result}
+
     for key in expectation:
         path = orig_path + "." + key
         no_error = True
