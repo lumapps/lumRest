@@ -1,8 +1,14 @@
-import logging, traceback, os, json, re, time, apiclient
+import traceback
+import os
+import json
+import re
+import time
+import apiclient
 from jsonpath import jsonpath
 import utils as ju
 from utils import pretty_json, check_json
 from app.oauth import OAuth
+
 
 class CommandParser():
     """
@@ -17,21 +23,24 @@ class CommandParser():
         self.config = config
         self.exit_on_error = exit_on_error
 
-        if self.config.has_key('debug'):
+        if 'debug' in self.config:
             self.debug = self.config['debug']
         else:
             self.debug = False
 
         # authenticate
-        if config.has_key('auth'):
-            self.service = OAuth.getService(config['auth']['email'], scene['service']['api'],
-                                       scene['service']['version'], config['auth']['oauth_scope'],
-                                       config['auth']['client_secret'], config['auth']['client_id'],
-                                       discoveryUrl = scene['service']['discovery_url'])
+        if 'auth' in config:
+            self.service = OAuth.getService(config['auth']['email'],
+                                            scene['service']['api'],
+                                            scene['service']['version'],
+                                            config['auth']['oauth_scope'],
+                                            config['auth']['client_secret'],
+                                            config['auth']['client_id'],
+                                            discoveryUrl=scene['service']['discovery_url'])
         else:
             self.service = apiclient.discovery.build(
                 scene['service']['api'], scene['service']['version'],
-                discoveryServiceUrl = scene['service']['discovery_url'])
+                discoveryServiceUrl=scene['service']['discovery_url'])
 
     def parse(self):
         """
@@ -54,14 +63,17 @@ class CommandParser():
 
         The possible keys to be used for each key are:
 
-        - The mandatory endpoint name, its value is a dictionary of arguments and their respective values.
-        - `save_result`: saves the result of this endpoint into a dictionary. Its value is the name used to reference it.
+        - The mandatory endpoint name, its value is a dictionary of arguments
+            and their respective values.
+        - `save_result`: saves the result of this endpoint into a dictionary.
+            Its value is the name used to reference it.
         - `print_result`: outputs the result of this endpoint execution to stdout
-        - `check_result`: given a json file, uses `json_utils.check_json()` to check that the result respects its pattern.
+        - `check_result`: given a json file, uses `json_utils.check_json()`
+            to check that the result respects its pattern.
         """
         print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
 
-        if not self.scenario.has_key('commands'):
+        if 'commands' not in self.scenario:
             raise ValueError("The scenario file has to contain a `commands` section")
 
         commands = self.scenario['commands']
@@ -90,9 +102,8 @@ class CommandParser():
         export_result = None
         eval_expr = None
         pre_eval_expr = None
-        repeat = 1
-        repeatList = None
         check_code = 200
+        repeat_while = None
 
         if command.has_key('check_result'):
             check_json_val = command.pop('check_result')
@@ -126,22 +137,8 @@ class CommandParser():
         if command.has_key('pre_eval_expr'):
             pre_eval_expr = command.pop('pre_eval_expr')
 
-        if command.has_key('repeat'):
-            repeat = command.pop('repeat')
-            if isinstance(repeat, str) or isinstance(repeat, unicode):
-                #todo: replace this with a jsonpath expression
-                repeatFormat = repeat.split(".")
-                repeatList = self.output_results
-                for keyVal in repeatFormat:
-                    repeatList = repeatList[keyVal]
-                repeat = len(repeatList)
-
-                #match = self.expression_matcher.match(repeat)
-                #if match:
-                    ## raises a ValueError, to be catched upper in the stack
-                    #val = self.__parse_expression(match.group(1))
-                #else:
-                    #repeat = None
+        if command.has_key('repeat_while'):
+            repeat_while = command.pop('repeat_while')
 
         if len(command.keys()) != 1:
             raise ValueError("You must provide one and only one endpoint per command, see the manual")
@@ -150,7 +147,9 @@ class CommandParser():
         key = command.keys()[0]
 
         #import pdb; pdb.set_trace()
-        for i in xrange(repeat):
+        repeat = True
+
+        while repeat:
             # put the () for the endpoints
             endpoint = 'service.' + key.replace('.', '().')
             endpoint += '('
@@ -158,18 +157,7 @@ class CommandParser():
             endpoint_args = []
             if isinstance(command[key], dict):
                 for arg in command[key]:
-                    if repeat > 1:
-                        #todo: replace this with a jsonpath expression
-                        val = command[key][arg]
-                        val, argKey = val.split('@')
-                        repeatFormat = val.split(".")
-                        #import pdb; pdb.set_trace()
-                        tempList = self.output_results
-                        for keyVal in repeatFormat:
-                            tempList = tempList[keyVal]
-                        val = tempList[i][argKey]
-                    else:
-                        val = command[key][arg]
+                    val = command[key][arg]
 
                     # for body, read the json file
                     if arg == 'body':
@@ -249,13 +237,7 @@ class CommandParser():
                         exec(expr)
 
             if result_name:
-                if repeat > 1:
-                    if not self.output_results.has_key(result_name):
-                        self.output_results[result_name] = []
-
-                    self.output_results[result_name].append(result)
-                else:
-                    self.output_results[result_name] = result
+                self.output_results[result_name] = result
 
             if export_result:
                 with open("{}{}".format(export_result, i), 'w') as f:
@@ -302,6 +284,29 @@ class CommandParser():
                             print ju.end_color
                         val = None
 
+            if repeat_while:
+                match = self.expression_matcher.match(repeat_while)
+                if match:
+                    val = None
+                    try:
+                        val = self.__parse_expression(match.group(1), container = result)
+                    except Exception, e:
+                        if self.debug:
+                            print traceback.format_exc()
+                        print e
+                    if val:
+                        print ju.info_color
+                        print "Content of {}:".format(match.group(1))
+                        pretty_json(val)
+                        print ju.end_color
+                        repeat = True
+                    else:
+                        repeat = False
+                else:
+                    repeat = False
+            else:
+                repeat = False
+
             if json_pattern:
                 # replace the expressions in the json pattern
                 dump = json.dumps(json_pattern)
@@ -336,7 +341,7 @@ class CommandParser():
         """
         Parses the jsonpath expression in {self.output_results} and return its result
         """
-        if container == None:
+        if container is None:
             container = self.output_results
 
         expression = expression.strip()
@@ -352,7 +357,7 @@ class CommandParser():
             print e
             raise RuntimeError("Error when parsing the expression {}".format(expression))
 
-        if results == False or len(results) == 0:
+        if results is False or len(results) == 0:
             raise RuntimeError("The expression {} gave no result".format(expression))
 
         if as_list:
