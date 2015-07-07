@@ -105,7 +105,7 @@ class CommandParser():
         check_code = 200
         repeat_while = None
 
-        if command.has_key('check_result'):
+        if 'check_result' in command:
             check_json_val = command.pop('check_result')
             if isinstance(check_json_val, dict):
                 json_pattern = check_json_val
@@ -119,25 +119,25 @@ class CommandParser():
                 with open(check_json_file, 'r') as check:
                     json_pattern = json.load(check)
 
-        if command.has_key('save_result'):
+        if 'save_result' in command:
             result_name = command.pop('save_result')
 
-        if command.has_key('check_code'):
+        if 'check_code' in command:
             check_code = command.pop('check_code')
 
-        if command.has_key('print_result'):
+        if 'print_result' in command:
             print_result = command.pop('print_result')
 
-        if command.has_key('export_result'):
+        if 'export_result' in command:
             export_result = command.pop('export_result')
 
-        if command.has_key('eval_expr'):
+        if 'eval_expr' in command:
             eval_expr = command.pop('eval_expr')
 
-        if command.has_key('pre_eval_expr'):
+        if 'pre_eval_expr' in command:
             pre_eval_expr = command.pop('pre_eval_expr')
 
-        if command.has_key('repeat_while'):
+        if 'repeat_while' in command:
             repeat_while = command.pop('repeat_while')
 
         if len(command.keys()) != 1:
@@ -146,7 +146,7 @@ class CommandParser():
         # build the endpoint request
         key = command.keys()[0]
 
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         repeat = True
 
         while repeat:
@@ -176,7 +176,7 @@ class CommandParser():
                                 with open(body_file, 'r') as body:
                                     val = json.load(body)
 
-                        #parse expressions in the body
+                        # parse expressions in the body
                         val = self._parse_body(val)
 
                         if pre_eval_expr:
@@ -185,7 +185,6 @@ class CommandParser():
                             elif isinstance(pre_eval_expr, list):
                                 for expr in pre_eval_expr:
                                     exec(expr)
-
 
                     else:
                         if isinstance(val, str) or isinstance(val, unicode):
@@ -216,8 +215,8 @@ class CommandParser():
                         msg = e.__str__()
                     else:
                         msg = e.message
-                    raise RuntimeError("The executed command was: {}\nMessage: {}"\
-                                       .format(endpoint.replace("\.execute()", ""), msg))
+                    raise RuntimeError("The executed command was: {}\nMessage: {}".
+                                       format(endpoint.replace("\.execute()", ""), msg))
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
             if status != check_code:
@@ -240,10 +239,10 @@ class CommandParser():
                 self.output_results[result_name] = result
 
             if export_result:
-                with open("{}{}".format(export_result, i), 'w') as f:
+                with open("{}".format(export_result), 'w') as f:
                     json.dump(result, f, indent=4, separators=(',', ': '))
 
-            if print_result == True:
+            if print_result is True:
                 print ju.info_color
                 print "Result JSON:"
                 pretty_json(result)
@@ -254,7 +253,7 @@ class CommandParser():
                 if match:
                     val = None
                     try:
-                        val = self.__parse_expression(match.group(1), container = result)
+                        val = self.__parse_expression(match.group(1), container=result)
                     except Exception, e:
                         if self.debug:
                             print traceback.format_exc()
@@ -271,7 +270,7 @@ class CommandParser():
                     match = self.expression_matcher.match(expr)
                     if match:
                         try:
-                            val = self.__parse_expression(match.group(1), container = result)
+                            val = self.__parse_expression(match.group(1), container=result)
                         except Exception, e:
                             if self.debug:
                                 print traceback.format_exc()
@@ -289,7 +288,7 @@ class CommandParser():
                 if match:
                     val = None
                     try:
-                        val = self.__parse_expression(match.group(1), container = result)
+                        val = self.__parse_expression(match.group(1), container=result)
                     except Exception, e:
                         if self.debug:
                             print traceback.format_exc()
@@ -331,11 +330,14 @@ class CommandParser():
                 for idx, sub_val in enumerate(val):
                     if isinstance(sub_val, dict):
                         body[key][idx] = self._parse_body(sub_val)
-
+                    elif isinstance(sub_val, unicode) or isinstance(sub_val, str):
+                        match = self.expression_matcher.match(sub_val)
+                        if match:
+                            sub_val = self.__parse_expression(match.group(1))
+                            body[key][idx] = sub_val
             elif isinstance(val, dict):
                 self._parse_body(val)
         return body
-
 
     def __parse_expression(self, expression, container=None):
         """
