@@ -125,6 +125,7 @@ class CommandParser():
         pre_eval_expr = None
         check_code = 200
         repeat_while = None
+        description = None
 
         if 'check_result' in command:
             check_json_val = command.pop('check_result')
@@ -160,6 +161,9 @@ class CommandParser():
 
         if 'repeat_while' in command:
             repeat_while = command.pop('repeat_while')
+
+        if 'description' in command:
+            description = str(command.pop('description'))
 
         if len(command.keys()) != 1:
             raise ValueError("You must provide one and only one endpoint per command, see the manual")
@@ -222,6 +226,8 @@ class CommandParser():
             endpoint += ','.join(endpoint_args) + ').execute()'
 
             print "\n{}{}Executing : {}{}".format(ju.bold, ju.yellow, key, ju.end_color)
+            if description:
+                print "Description: {}\n".format(description)
 
             exec_time = time.time()
             # run the endpoint request
