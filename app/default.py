@@ -83,6 +83,9 @@ class CommandParser():
         error = False
         for command in commands:
             try:
+                if isinstance(command, unicode) or isinstance(command, str):
+                    command = {command:[]}
+
                 service = self.service
                 # change the auth temporarily
                 if 'config' in command:
