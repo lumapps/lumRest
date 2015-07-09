@@ -23,7 +23,6 @@ def get_service(service_config, auth_config=None, provider="GOOGLE"):
             return apiclient.discovery.build(service_config['api'], service_config['version'],
                                             discoveryServiceUrl=service_config['discovery_url'])
 
-
 class CommandParser():
     """
     The Parser class
@@ -93,10 +92,11 @@ class CommandParser():
                     service_config = self.scenario['service']
                     if 'auth' in command['config']:
                         for key, val in command['config']['auth'].iteritems():
-                            config['auth'][key] = val
+                            config['auth'][key] = self.eval_expr(val)
+
                     if 'service' in command['config']:
                         for key, val in command['config']['service'].iteritems():
-                            service_config[key] = val
+                            service_config[key] = self.eval_expr(val)
 
                     service = get_service(service_config, config.get('auth', None))
                     command.pop('config')
@@ -213,13 +213,7 @@ class CommandParser():
 
                     else:
                         if isinstance(val, str) or isinstance(val, unicode):
-                            # if we have a variable name check in the output_results
-                            match = self.expression_matcher.match(val)
-                            if match:
-                                # raises a ValueError, to be catched upper in the stack
-                                val = self.__parse_expression(match.group(1))
-
-                            val = '"' + str(val) + '"'
+                            val = '"' + str(self.eval_expr(val)) + '"'
 
                     endpoint_args.append("{} = {}".format(arg, val))
 
@@ -384,3 +378,10 @@ class CommandParser():
             return results
         else:
             return results[0]
+
+    def eval_expr(self, val):
+        match = self.expression_matcher.match(val)
+        if match:
+            # raises a ValueError, to be catched upper in the stack
+            val = self.__parse_expression(match.group(1))
+        return val
