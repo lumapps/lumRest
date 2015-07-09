@@ -334,16 +334,7 @@ class CommandParser():
                 repeat = False
 
             if json_pattern:
-                # replace the expressions in the json pattern
-                dump = json.dumps(json_pattern)
-                did_match = match = self.expression_matcher.search(dump)
-                while match:
-                    dump = self.expression_matcher.sub(self.__parse_expression(match.group(1)), dump)
-                    match = self.expression_matcher.search(dump)
-
-                if did_match:
-                    json_pattern = json.loads(dump)
-
+                json_pattern = self._parse_body(json_pattern)
                 check_json(result, json_pattern, exit_on_error=self.exit_on_error)
 
     def _parse_body(self, body):
