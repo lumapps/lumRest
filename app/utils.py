@@ -70,7 +70,7 @@ def light_assert(exp, message, exit_on_error=False):
             return False
 
 
-def check_json(result, expectation, path="$", exit_on_error=False):
+def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=False):
     no_error = True
     orig_path = path
 
@@ -160,9 +160,21 @@ def check_json(result, expectation, path="$", exit_on_error=False):
                     'The number of results in path "{}" does not match what expected (there were {} entries rather than {})'.format(path, len(res), len(exp)),
                     exit_on_error=exit_on_error)
 
-                for index, entry in enumerate(res):
-                    check_json(entry, exp[index], path + "[{}]".format(index + 1), exit_on_error=exit_on_error)
+                iterations = 0
+                entries = range(len(res))
+                while iterations < len(res):
+                    for idx in entries:
+                        no_err = check_json(res[idx], exp[idx], path + "[{}]".format(idx + 1), exit_on_error=exit_on_error,
+                                skip_errors=True)
+                        if no_err:
+                            entries.remove(idx)
+                            break
+                    iterations += 1
 
+                no_error = light_assert(
+                    iterations == len(res) and len(entries) == 0,
+                    'The results in path "{}" do not match what expected'.format(path),
+                    exit_on_error=exit_on_error)
         else:
             exp = str(exp)
             res = str(res)
@@ -176,13 +188,21 @@ def check_json(result, expectation, path="$", exit_on_error=False):
                     ('The result "{}" does not match the regex "{}"'
                      '\n* PATH : {}').format(res, exp, path),
                     exit_on_error=exit_on_error)
-            else:
+            elif not skip_errors:
                 no_error = light_assert(
                     res == exp,
                     ('The result "{}" does not match "{}"'
                      '\n* PATH : {}').format(res, exp, path),
                     exit_on_error=exit_on_error)
-        if no_error:
-            print(info_color, path, success_color, bold, "DONE", end_color)
+            elif skip_errors and res == exp:
+                no_error = True
+            else:
+                no_error = False
+
+        if not skip_errors:
+            if no_error:
+                print(info_color, path, success_color, bold, "DONE", end_color)
+            else:
+                print(info_color, path, error_color, bold, "FAILURE", end_color)
         else:
-            print(info_color, path, error_color, bold, "FAILURE", end_color)
+            return no_error
