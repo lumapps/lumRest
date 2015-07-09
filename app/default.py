@@ -9,6 +9,20 @@ import utils as ju
 from utils import pretty_json, check_json
 from app.oauth import OAuth
 
+def get_service(service_config, auth_config=None, provider="GOOGLE"):
+    if provider == "GOOGLE":
+        if auth_config:
+            return OAuth.getService(auth_config['email'],
+                                    service_config['api'],
+                                    service_config['version'],
+                                    auth_config['oauth_scope'],
+                                    auth_config['client_secret'],
+                                    auth_config['client_id'],
+                                    discoveryUrl=service_config['discovery_url'])
+        else:
+            return apiclient.discovery.build(service_config['api'], service_config['version'],
+                                            discoveryServiceUrl=service_config['discovery_url'])
+
 
 class CommandParser():
     """
@@ -29,18 +43,7 @@ class CommandParser():
             self.debug = False
 
         # authenticate
-        if 'auth' in config:
-            self.service = OAuth.getService(config['auth']['email'],
-                                            scene['service']['api'],
-                                            scene['service']['version'],
-                                            config['auth']['oauth_scope'],
-                                            config['auth']['client_secret'],
-                                            config['auth']['client_id'],
-                                            discoveryUrl=scene['service']['discovery_url'])
-        else:
-            self.service = apiclient.discovery.build(
-                scene['service']['api'], scene['service']['version'],
-                discoveryServiceUrl=scene['service']['discovery_url'])
+        self.service = get_service(scene['service'], config.get('auth', None))
 
     def parse(self):
         """
@@ -80,7 +83,22 @@ class CommandParser():
         error = False
         for command in commands:
             try:
-                self.__parse_command(command, self.service, self.scenario_root)
+                service = self.service
+                # change the auth temporarily
+                if 'config' in command:
+                    config = self.config
+                    service_config = self.scenario['service']
+                    if 'auth' in command['config']:
+                        for key, val in command['config']['auth'].iteritems():
+                            config['auth'][key] = val
+                    if 'service' in command['config']:
+                        for key, val in command['config']['service'].iteritems():
+                            service_config[key] = val
+
+                    service = get_service(service_config, config.get('auth', None))
+                    command.pop('config')
+
+                self.__parse_command(command, service, self.scenario_root)
             except AssertionError:
                 error = True
             except Exception, e:
