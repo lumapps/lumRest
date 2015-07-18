@@ -124,6 +124,7 @@ class CommandParser():
         eval_expr = None
         pre_eval_expr = None
         check_code = 200
+        check_message = None
         repeat_while = None
         description = None
 
@@ -146,6 +147,9 @@ class CommandParser():
 
         if 'check_code' in command:
             check_code = command.pop('check_code')
+
+        if 'check_message' in command:
+            check_message = command.pop('check_message')
 
         if 'print_result' in command:
             print_result = command.pop('print_result')
@@ -226,9 +230,15 @@ class CommandParser():
             exec_time = time.time()
             # run the endpoint request
             status = 200
+            message = None
             try:
                 result = eval(endpoint)
             except Exception, e:
+                try:
+                    message = json.loads(e.content).get('error').get('message')
+                except:
+                    pass
+
                 if check_code and hasattr(e, 'resp') and e.resp["status"] == str(check_code):
                     status = check_code
                 else:
@@ -244,6 +254,12 @@ class CommandParser():
                 raise RuntimeError("The executed command was: {}\nMessage: {}".format(
                     endpoint.replace("\.execute()", ""),
                     "HTTP status code is {} and expected is {}.".format(status, check_code)
+                ))
+
+            if check_message and check_message != message:
+                raise RuntimeError("The executed command was: {}\nMessage: {}".format(
+                    endpoint.replace("\.execute()", ""),
+                    "HTTP error message is {} and expected is {}.".format(message, check_message)
                 ))
 
             elif int(check_code) - 200 >= 100:
