@@ -256,7 +256,7 @@ class CommandParser():
                     "HTTP status code is {} and expected is {}.".format(status, check_code)
                 ))
 
-            if check_message and message and check_message != message:
+            if check_message and check_message != message:
                 raise RuntimeError("The executed command was: {}\nMessage: {}".format(
                     endpoint.replace("\.execute()", ""),
                     "HTTP error message is {} and expected is {}.".format(message, check_message)
