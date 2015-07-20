@@ -173,8 +173,9 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
     ```yaml
     expression:
       - expr('result.key') == expr('previous.key') # check that result['key'] == saved_results['previous']['key']
-      - not expr(result.key2) # negate the value of result['key']
+      - not expr('result.key2') # negate the value of result['key']
     ```
+    If a previous `saved_results` value is named `result`, then it will be overriden.
 
 
 ###Misc###

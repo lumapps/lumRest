@@ -125,8 +125,6 @@ class CommandParser():
         pre_eval_expr = None
         check_code = 200
         check_message = None
-        repeat_while = None
-        repeat_delay = 1
         repeat = None
         description = None
 
@@ -413,7 +411,7 @@ class CommandParser():
                 message: <str>
                 expression: <str> (python expression)
         """
-        mode = repeat.get('mode', 'until')
+        mode = repeat.get('mode', 'while')
         delay = repeat.get('delay', 1.0)
         maximum = repeat.get('max', 5)
         conditions = repeat.get('conditions', {'code': 200, 'message': None, 'expression': None})
@@ -425,7 +423,9 @@ class CommandParser():
             return False
 
         cont = True
-        ns = {'saved_results': self.output_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
+        saved_results = self.output_results
+        saved_results['result'] = result
+        ns = {'saved_results': saved_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
         
         check = lambda l, r: l == r if mode == 'while' else l != r
 
