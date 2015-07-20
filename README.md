@@ -164,13 +164,13 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
   `saved_results`. For example
 
   ```yaml
-  expression: expr(result.key) == 'value'
+  expression: expr('result.key') == 'value'
   ```
   It can also be a list of expressions:
   
   ```yaml
   expression:
-    - expr(result.key) == expr(previous.key) # check that result['key'] == saved_results['previous']['key']
+    - expr('result.key') == expr('previous.key') # check that result['key'] == saved_results['previous']['key']
     - not expr(result.key2) # negate the value of result['key']
   ```
 
