@@ -421,8 +421,8 @@ class CommandParser():
         message = conditions.get('message', None)
         expression = conditions.get('expression', None)
 
-        if maximum != 0 and times > maximum:
-            return False
+        if maximum != 0 and times >= maximum:
+            raise RuntimeError("Retried {} time(s) without success.".format(maximum))
 
         cont = True
         saved_results = self.output_results
