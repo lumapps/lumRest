@@ -126,8 +126,10 @@ class CommandParser():
         check_code = 200
         check_message = None
         repeat_while = None
+        repeat_delay = 1
         description = None
 
+        # load the check_result json file if provided
         if 'check_result' in command:
             check_json_val = command.pop('check_result')
             if isinstance(check_json_val, dict):
@@ -166,11 +168,15 @@ class CommandParser():
         if 'repeat_while' in command:
             repeat_while = command.pop('repeat_while')
 
+        if 'repeat_delay' in command:
+            repeat_delay = float(command.pop('repeat_delay'))
+
         if 'description' in command:
-            description = str(command.pop('description'))
+            description = unicode(command.pop('description'))
 
         if len(command.keys()) != 1:
-            raise ValueError("You must provide one and only one endpoint per command, see the manual")
+            raise ValueError("You must provide one and only one endpoint per command, see the manual.\n{}".format(
+                "\n".join(['- {}'.format(k) for k in command])))
 
         # build the endpoint request
         key = command.keys()[0]
@@ -208,12 +214,19 @@ class CommandParser():
                         # parse expressions in the body
                         val = self._parse_body(val)
 
+                        # avoid to use `self.eval_expr` in the yml by using `expr` directly
+                        expr = lambda e: self.eval_expr('{{' + e + '}}')
+
+                        ns = {'saved_results': self.output_results, 'body': val, 'expr': lambda e: self.eval_expr('{{' + e + '}}')}
+
                         if pre_eval_expr:
                             if isinstance(pre_eval_expr, str) or isinstance(pre_eval_expr, unicode):
-                                exec(pre_eval_expr)
+                                exec pre_eval_expr in ns
                             elif isinstance(pre_eval_expr, list):
-                                for expr in pre_eval_expr:
-                                    exec(expr)
+                                for e in pre_eval_expr:
+                                    exec e in ns
+
+                        val = ns.get('body', val)
 
                     else:
                         if isinstance(val, str) or isinstance(val, unicode):
@@ -266,11 +279,15 @@ class CommandParser():
                 return
 
             if eval_expr:
+                ns = {'saved_results': self.output_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
+
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
-                    exec(eval_expr)
+                    exec eval_expr in ns
                 elif isinstance(eval_expr, list):
-                    for expr in eval_expr:
-                        exec(expr)
+                    for e in eval_expr:
+                        exec e in ns
+
+                result = ns.get('result', result)
 
             if result_name:
                 self.output_results[result_name] = result
@@ -336,6 +353,7 @@ class CommandParser():
                         pretty_json(val)
                         print ju.end_color
                         repeat = True
+                        time.sleep(repeat_delay)
                     else:
                         repeat = False
                 else:
