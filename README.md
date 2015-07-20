@@ -9,7 +9,7 @@ package, for instance `python-yaml` on Ubuntu.
 
 The basic usage can be found by running the script with a `-h` option.
 ```bash
-usage: lumrest.py [-h] [--auth AUTH_CONFIG_FILE] SCENARIO_FILE
+usage: lumrest.py [-h] [--auth AUTH_CONFIG_FILE] [-X] [SCENARIO_FILE]
 
 Endpoint tester
 
@@ -21,6 +21,7 @@ optional arguments:
   --auth AUTH_CONFIG_FILE
                         The configuration file containg authentication
                         information
+  -X                    Stop at the first error
 ```
 
 The script has one mandatory argument (the scenario file) and another optional
