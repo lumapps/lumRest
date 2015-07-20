@@ -46,8 +46,14 @@ service:
 The commands are defined in a list form. Each list entry has a mandatory key being the endpoint to be called and some optional keys:
 - `save_result`: saves the result of this endpoint. Its value is the name used to reference it (see [Save](#save))
 - `export_result`: saves the result to a file, its value is the file name.
-- `print_result`: outputs the result of this endpoint execution to stdout  (see [Print](#print))
+- `print_result`: outputs the result of this endpoint execution to `stdout`  (see [Print](#print))
 - `check_result`: checks that the result respect the given pattern. If a json file is given, reads it and uses it to check  (see [Check](#check))
+- `check_code`: checks the return code form the endpoint. (see [Check](#check))
+- `check_message`: checks the return error message. (see [Check](#check))
+- `repeat_while`: recalls the endpoint as long as a given value is `True` or exists. (see [Misc](#misc))
+- `description`: a short description of the test case. (see [Misc](#misc))
+- `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
+- `pre_eva_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
 
 Suppose we have the following urlshortener example:
 ```yaml
@@ -119,7 +125,16 @@ The `check_result` json content has some additional parameters that can be used 
     ```json
     "key" : [ "#ALL#", obj1, obj2]
     ```
-    checks that the result has exactly two entries, the first one respect the template of obj1 and the second respects the template of obj2
+    checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
+
+One can also check the HTTP code returned by the endpoint by using `check_code`. By default it checks that the endpoint
+returns `200`. To check the return error message, use `check_message`, a good combination can be:
+
+```yaml
+    - my.endpoint
+      check_code: 404
+      check_message: "ENDPOINT_NOT_FOUND"
+```
 
 ## Authentication ##
 To use services that require authentication, you have to call the script with `--auth=config.yaml` where `config.yaml` is a file containing the key `auth` as in:
