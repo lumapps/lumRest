@@ -162,10 +162,12 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
 - `message`, check the return error message of the endpoint
 - `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and
   `saved_results`. For example
+
   ```yaml
   expression: expr(result.key) == 'value'
   ```
   It can also be a list of expressions:
+  
   ```yaml
   expression:
     - expr(result.key) == expr(previous.key) # check that result['key'] == saved_results['previous']['key']
