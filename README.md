@@ -51,9 +51,10 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `check_code`: checks the return code form the endpoint. (see [Check](#check))
 - `check_message`: checks the return error message. (see [Check](#check))
 - `repeat_while`: recalls the endpoint as long as a given value is `True` or exists. (see [Misc](#misc))
-- `description`: a short description of the test case. (see [Misc](#misc))
+- `repeat_delay`: combined with `repeat_while`, defines the time to way between calls. Default 1s.
+- `description`: a short description of the test case.
 - `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
-- `pre_eva_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
+- `pre_eval_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
 
 Suppose we have the following urlshortener example:
 ```yaml
@@ -72,6 +73,12 @@ Next, we'd like to print the result of the command, when the `print_result` valu
 
 The second command calls the endpoint `url.get` with the argument `shortUrl`. When an argument, other than `body`, is a string preceded by `!expr`, its value is evaluated as a JsonPath expression and applied on the saved results. Here, we try to reference the `id` from `compressed`, the result of the previous command.
 Next, we print the result, if the command `print_result` is true, we print the whole Json response. Then we call `check_result` with an expression being a Json object. The value of `longUrl` is preceded by `#r#` to say that the value is a regular expression, which checks if the url ends with a `/` or not. For more details on these commands see [Check](#check).
+
+To call an endpoint without arguments, do not put the `:` after its name. For instance:
+```yaml
+  - my.endpoint
+    print_result: true
+```
 
 #### Save ####
 The option `save_result` takes as argument the name of the result that can be used later. The results are stored in a dictionary. Therefore, any reuse of that name in the `save_result` option will overwrite its previous value.
@@ -135,6 +142,47 @@ returns `200`. To check the return error message, use `check_message`, a good co
       check_code: 404
       check_message: "ENDPOINT_NOT_FOUND"
 ```
+###Misc###
+####Repeat####
+You can use `repeat_while` to call an endpoint repeatedly as long as a returned value is true. The following command
+```yaml
+  - my.endpoint
+    repeat_while: $.repeat
+```
+will call the endpoint `my.endpoint` repeatedly until the value of `repeat` changes to `false` or null.
+To avoid spamming the endpoint, there is a delay of 1s between the calls. You can change the delay using `repeat_delay`.
+
+If you want to evaluate an expression before the endpoint is executed, then `pre_eval_expr` is here for you. For
+example:
+```yaml
+  - my.endpoint
+    save_result: res
+  - my.other_endpoint
+    save_result: other_res
+  - my.last_endpoint:
+      body: res
+    pre_eval_expr: body['my_key'] = expr('other_res.key[0]')
+```
+the last endpoint call will modify the body right before the call. Notice that we used a jsonpath expression on the
+right-hand side, `expr()` let you do that. You can use any python expression, so this can be dangerous. If you want to
+access the saved values without using a jsonpath expression use the dictionary `self.output_results`, hence the
+expression `expr('other_res.key[0]')` amounts to `saved_results['other_res']['key'][0]`. This can be useful if you
+want to handle cases not supported by jsonpath. You can modify only `body` and access only `saved_results` and `body`
+itself.
+
+You can also use `eval_expr` to evaluate an expression after the execution of an endpoint. This can be useful if you
+want your changes to be used by all the other endpoints. The previous example becomes:
+```yaml
+  - my.other_endpoint
+    save_result: other_res
+  - my.endpoint
+    save_result: res
+    eval_expr: result['my_key'] = saved_results['other_res']['key'][0]
+  - my.last_endpoint:
+      body: res
+```
+The output of an endpoint is called `result`, any modification to it will be saved. Beware that `eval_expr` let you
+modify only `result`, and let you access only `saved_results` and `result` itself.
 
 ## Authentication ##
 To use services that require authentication, you have to call the script with `--auth=config.yaml` where `config.yaml` is a file containing the key `auth` as in:
