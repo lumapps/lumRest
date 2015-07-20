@@ -127,6 +127,7 @@ class CommandParser():
         check_message = None
         repeat_while = None
         repeat_delay = 1
+        repeat = None
         description = None
 
         # load the check_result json file if provided
@@ -165,11 +166,8 @@ class CommandParser():
         if 'pre_eval_expr' in command:
             pre_eval_expr = command.pop('pre_eval_expr')
 
-        if 'repeat_while' in command:
-            repeat_while = command.pop('repeat_while')
-
-        if 'repeat_delay' in command:
-            repeat_delay = float(command.pop('repeat_delay'))
+        if 'repeat' in command:
+            repeat = command.pop('repeat')
 
         if 'description' in command:
             description = unicode(command.pop('description'))
@@ -182,9 +180,10 @@ class CommandParser():
         key = command.keys()[0]
 
         # import pdb; pdb.set_trace()
-        repeat = True
+        repeat_bool = True
+        times = 0
 
-        while repeat:
+        while repeat_bool:
             # put the () for the endpoints
             endpoint = 'service.' + key.replace('.', '().')
             endpoint += '('
@@ -263,11 +262,15 @@ class CommandParser():
                                        format(endpoint.replace("\.execute()", ""), msg))
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
+            skip_results = False
             if status != check_code:
                 raise RuntimeError("The executed command was: {}\nMessage: {}".format(
                     endpoint.replace("\.execute()", ""),
                     "HTTP status code is {} and expected is {}.".format(status, check_code)
                 ))
+            elif int(check_code) - 200 >= 100:
+                skip_results = True
+                result = None
 
             if check_message and check_message != message:
                 raise RuntimeError("The executed command was: {}\nMessage: {}".format(
@@ -275,10 +278,7 @@ class CommandParser():
                     "HTTP error message is {} and expected is {}.".format(message, check_message)
                 ))
 
-            elif int(check_code) - 200 >= 100:
-                return
-
-            if eval_expr:
+            if eval_expr and not skip_results:
                 ns = {'saved_results': self.output_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
 
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
@@ -289,40 +289,24 @@ class CommandParser():
 
                 result = ns.get('result', result)
 
-            if result_name:
+            if result_name and not skip_results:
                 self.output_results[result_name] = result
 
-            if export_result:
+            if export_result and not skip_results:
                 with open("{}".format(export_result), 'w') as f:
                     json.dump(result, f, indent=4, separators=(',', ': '))
 
-            if print_result is True:
-                print ju.info_color
-                print "Result JSON:"
-                pretty_json(result)
-                print ju.end_color
-            elif isinstance(print_result, str) or isinstance(print_result, unicode):
-                # we have an expression!
-                match = self.expression_matcher.match(print_result)
-                if match:
-                    val = None
-                    try:
-                        val = self.__parse_expression(match.group(1), container=result)
-                    except Exception, e:
-                        if self.debug:
-                            print traceback.format_exc()
-                        print e
-
-                    if val:
-                        print ju.info_color
-                        print "Content of {}:".format(match.group(1))
-                        pretty_json(val)
-                        print ju.end_color
-            elif isinstance(print_result, list):
-                for expr in print_result:
+            if not skip_results:
+                if print_result is True:
+                    print ju.info_color
+                    print "Result JSON:"
+                    pretty_json(result)
+                    print ju.end_color
+                elif isinstance(print_result, str) or isinstance(print_result, unicode):
                     # we have an expression!
-                    match = self.expression_matcher.match(expr)
+                    match = self.expression_matcher.match(print_result)
                     if match:
+                        val = None
                         try:
                             val = self.__parse_expression(match.group(1), container=result)
                         except Exception, e:
@@ -335,31 +319,34 @@ class CommandParser():
                             print "Content of {}:".format(match.group(1))
                             pretty_json(val)
                             print ju.end_color
-                        val = None
+                elif isinstance(print_result, list):
+                    for expr in print_result:
+                        # we have an expression!
+                        match = self.expression_matcher.match(expr)
+                        if match:
+                            try:
+                                val = self.__parse_expression(match.group(1), container=result)
+                            except Exception, e:
+                                if self.debug:
+                                    print traceback.format_exc()
+                                print e
 
-            if repeat_while:
-                match = self.expression_matcher.match(repeat_while)
-                if match:
-                    val = None
-                    try:
-                        val = self.__parse_expression(match.group(1), container=result)
-                    except Exception, e:
-                        if self.debug:
-                            print traceback.format_exc()
-                        print e
-                    if val:
-                        print ju.info_color
-                        print "Content of {}:".format(match.group(1))
-                        pretty_json(val)
-                        print ju.end_color
-                        repeat = True
-                        time.sleep(repeat_delay)
-                    else:
-                        repeat = False
+                            if val:
+                                print ju.info_color
+                                print "Content of {}:".format(match.group(1))
+                                pretty_json(val)
+                                print ju.end_color
+                            val = None
+
+            if repeat:
+                repeat_bool = self.__parse_repeat(repeat, times, result, status, message)
+                if repeat_bool:
+                    print "Calling the endpoint again"
                 else:
-                    repeat = False
+                    print "Done repeating the call"
+                times += 1
             else:
-                repeat = False
+                repeat_bool = False
 
             if json_pattern:
                 json_pattern = self._parse_body(json_pattern)
@@ -412,6 +399,58 @@ class CommandParser():
             return results
         else:
             return results[0]
+
+    def __parse_repeat(self, repeat, times, result, status, msg):
+        """
+        parse repeat command:
+
+        repeat:
+            mode: until|while (default: while)
+            delay: <float> (default: 1)
+            max: <int> (default: 5)
+            code: <int> (default: 200)
+            message: <str>
+            expression: <str> (python expression)
+        """
+        mode = repeat.get('mode', 'until')
+        delay = repeat.get('delay', 1.0)
+        maximum = repeat.get('max', 5)
+        code = repeat.get('code', 200)
+        message = repeat.get('message', None)
+        expression = repeat.get('expression', None)
+
+        if maximum != 0 and times > maximum:
+            return False
+
+        cont = True
+        ns = {'saved_results': self.output_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
+        
+        check = lambda l, r: l == r if mode == 'while' else l != r
+
+        if code and not check(code, status):
+            return False
+        if message and not check(message, msg):
+            return False
+
+        if isinstance(expression, str) or isinstance(expression, unicode):
+            exec 'expression = ({})'.format(expression) in ns
+            cont = ns['expression']
+        elif isinstance(expression, list):
+            if mode == 'while':
+                cont = True
+                for e in expression:
+                    exec 'expression = ({})'.format(expression) in ns
+                    cont = cont and ns['expression']
+            else:
+                cont = False
+                for e in expression:
+                    exec 'expression = ({})'.format(expression) in ns
+                    cont = cont or ns['expression']
+        if not cont:
+            return False
+
+        time.sleep(delay)
+        return True
 
     def eval_expr(self, val):
         match = self.expression_matcher.match(val)

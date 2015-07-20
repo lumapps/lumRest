@@ -50,8 +50,7 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `check_result`: checks that the result respect the given pattern. If a json file is given, reads it and uses it to check  (see [Check](#check))
 - `check_code`: checks the return code form the endpoint. (see [Check](#check))
 - `check_message`: checks the return error message. (see [Check](#check))
-- `repeat_while`: recalls the endpoint as long as a given value is `True` or exists. (see [Misc](#misc))
-- `repeat_delay`: combined with `repeat_while`, defines the time to way between calls. Default 1s.
+- `repeat`: recalls the endpoint following a set of conditions. (see [Repeat](#repeat))
 - `description`: a short description of the test case.
 - `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
 - `pre_eval_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
@@ -142,16 +141,39 @@ returns `200`. To check the return error message, use `check_message`, a good co
       check_code: 404
       check_message: "ENDPOINT_NOT_FOUND"
 ```
-###Misc###
-####Repeat####
-You can use `repeat_while` to call an endpoint repeatedly as long as a returned value is true. The following command
+
+###Repeat###
+You can use `repeat` to call an endpoint repeatedly, the structure of the command is as follow
 ```yaml
   - my.endpoint
-    repeat_while: $.repeat
+    repeat:
+      mode: until|while (default: while) 
+      delay: <float> (default: 1)
+      max: <int> (default: 5)
+      code: <int> (default: 200)
+      message: <str> (default: no message)
+      expression: <str> (python expression)
 ```
-will call the endpoint `my.endpoint` repeatedly until the value of `repeat` changes to `false` or null.
-To avoid spamming the endpoint, there is a delay of 1s between the calls. You can change the delay using `repeat_delay`.
+- `mode`, specify how to repeat the call, a `while` mode means that if all the conditions are true we repeat, an `until`
+  mode means that we repeat the calls as long as the conditions are false
+- `delay`, the time to wait between the calls
+- `max`, the maximum number of retries, set it to `0` for unlimited
+- `code`, check the return code of the endpoint
+- `message`, check the return error message of the endpoint
+- `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and
+  `saved_results`. For example
+  ```yaml
+  expression: expr(result.key) == 'value'
+  ```
+  It can also be a list of expressions:
+  ```yaml
+  expression:
+    - expr(result.key) == expr(previous.key) # check that result['key'] == saved_results['previous']['key']
+    - not expr(result.key2) # negate the value of result['key']
+  ```
 
+
+###Misc###
 If you want to evaluate an expression before the endpoint is executed, then `pre_eval_expr` is here for you. For
 example:
 ```yaml
