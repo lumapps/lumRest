@@ -251,7 +251,7 @@ class CommandParser():
 
                 if check_code and hasattr(e, 'resp') and e.resp["status"] == str(check_code):
                     status = check_code
-                else:
+                elif not repeat:
                     if len(e.message) == 0:
                         msg = e.__str__()
                     else:
@@ -260,14 +260,12 @@ class CommandParser():
                                        format(endpoint.replace("\.execute()", ""), msg))
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
-            skip_results = False
-            if status != check_code:
+            if not repeat and status != check_code:
                 raise RuntimeError("The executed command was: {}\nMessage: {}".format(
                     endpoint.replace("\.execute()", ""),
                     "HTTP status code is {} and expected is {}.".format(status, check_code)
                 ))
-            elif int(check_code) - 200 >= 100:
-                skip_results = True
+            elif not repeat and int(check_code) - 200 >= 100:
                 result = None
 
             if check_message and check_message != message:
@@ -276,7 +274,7 @@ class CommandParser():
                     "HTTP error message is {} and expected is {}.".format(message, check_message)
                 ))
 
-            if eval_expr and not skip_results:
+            if eval_expr:
                 ns = {'saved_results': self.output_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
 
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
@@ -287,14 +285,14 @@ class CommandParser():
 
                 result = ns.get('result', result)
 
-            if result_name and not skip_results:
+            if result_name and result:
                 self.output_results[result_name] = result
 
-            if export_result and not skip_results:
+            if export_result and result:
                 with open("{}".format(export_result), 'w') as f:
                     json.dump(result, f, indent=4, separators=(',', ': '))
 
-            if not skip_results:
+            if result:
                 if print_result is True:
                     print ju.info_color
                     print "Result JSON:"
