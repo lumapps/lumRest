@@ -151,17 +151,19 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
       mode: until|while (default: while) 
       delay: <float> (default: 1)
       max: <int> (default: 5)
-      code: <int> (default: 200)
-      message: <str> (default: no message)
-      expression: <str> (python expression)
+      conditions:
+        code: <int> (default: 200)
+        message: <str> (default: no message)
+        expression: <str> (python expression)
 ```
 - `mode`, specify how to repeat the call, a `while` mode means that if all the conditions are true we repeat, an `until`
   mode means that we repeat the calls as long as the conditions are false
 - `delay`, the time to wait between the calls
 - `max`, the maximum number of retries, set it to `0` for unlimited
-- `code`, check the return code of the endpoint
-- `message`, check the return error message of the endpoint
-- `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and
+- `conditions`, contain the conditions to check
+* `code`, check the return code of the endpoint
+* `message`, check the return error message of the endpoint
+* `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and
   `saved_results`. For example
 
   ```yaml

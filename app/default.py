@@ -408,16 +408,18 @@ class CommandParser():
             mode: until|while (default: while)
             delay: <float> (default: 1)
             max: <int> (default: 5)
-            code: <int> (default: 200)
-            message: <str>
-            expression: <str> (python expression)
+            conditions:
+                code: <int> (default: 200)
+                message: <str>
+                expression: <str> (python expression)
         """
         mode = repeat.get('mode', 'until')
         delay = repeat.get('delay', 1.0)
         maximum = repeat.get('max', 5)
-        code = repeat.get('code', 200)
-        message = repeat.get('message', None)
-        expression = repeat.get('expression', None)
+        conditions = repeat.get('conditions', {'code': 200, 'message': None, 'expression': None})
+        code = conditions.get('code', 200)
+        message = conditions.get('message', None)
+        expression = conditions.get('expression', None)
 
         if maximum != 0 and times > maximum:
             return False
