@@ -46,8 +46,14 @@ service:
 The commands are defined in a list form. Each list entry has a mandatory key being the endpoint to be called and some optional keys:
 - `save_result`: saves the result of this endpoint. Its value is the name used to reference it (see [Save](#save))
 - `export_result`: saves the result to a file, its value is the file name.
-- `print_result`: outputs the result of this endpoint execution to stdout  (see [Print](#print))
+- `print_result`: outputs the result of this endpoint execution to `stdout`  (see [Print](#print))
 - `check_result`: checks that the result respect the given pattern. If a json file is given, reads it and uses it to check  (see [Check](#check))
+- `check_code`: checks the return code form the endpoint. (see [Check](#check))
+- `check_message`: checks the return error message. (see [Check](#check))
+- `repeat`: recalls the endpoint following a set of conditions. (see [Repeat](#repeat))
+- `description`: a short description of the test case.
+- `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
+- `pre_eval_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
 
 Suppose we have the following urlshortener example:
 ```yaml
@@ -66,6 +72,12 @@ Next, we'd like to print the result of the command, when the `print_result` valu
 
 The second command calls the endpoint `url.get` with the argument `shortUrl`. When an argument, other than `body`, is a string preceded by `!expr`, its value is evaluated as a JsonPath expression and applied on the saved results. Here, we try to reference the `id` from `compressed`, the result of the previous command.
 Next, we print the result, if the command `print_result` is true, we print the whole Json response. Then we call `check_result` with an expression being a Json object. The value of `longUrl` is preceded by `#r#` to say that the value is a regular expression, which checks if the url ends with a `/` or not. For more details on these commands see [Check](#check).
+
+To call an endpoint without arguments, do not put the `:` after its name. For instance:
+```yaml
+  - my.endpoint
+    print_result: true
+```
 
 #### Save ####
 The option `save_result` takes as argument the name of the result that can be used later. The results are stored in a dictionary. Therefore, any reuse of that name in the `save_result` option will overwrite its previous value.
@@ -119,7 +131,82 @@ The `check_result` json content has some additional parameters that can be used 
     ```json
     "key" : [ "#ALL#", obj1, obj2]
     ```
-    checks that the result has exactly two entries, the first one respect the template of obj1 and the second respects the template of obj2
+    checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
+
+One can also check the HTTP code returned by the endpoint by using `check_code`. By default it checks that the endpoint
+returns `200`. To check the return error message, use `check_message`, a good combination can be:
+
+```yaml
+    - my.endpoint
+      check_code: 404
+      check_message: "ENDPOINT_NOT_FOUND"
+```
+
+###Repeat###
+You can use `repeat` to call an endpoint repeatedly, the structure of the command is as follow
+```yaml
+  - my.endpoint
+    repeat:
+      mode: until|while (default: while) 
+      delay: <float> (default: 1)
+      max: <int> (default: 5)
+      code: <int> (default: 200)
+      message: <str> (default: no message)
+      expression: <str> (python expression)
+```
+- `mode`, specify how to repeat the call, a `while` mode means that if all the conditions are true we repeat, an `until`
+  mode means that we repeat the calls as long as the conditions are false
+- `delay`, the time to wait between the calls
+- `max`, the maximum number of retries, set it to `0` for unlimited
+- `code`, check the return code of the endpoint
+- `message`, check the return error message of the endpoint
+- `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and
+  `saved_results`. For example
+
+  ```yaml
+  expression: expr('result.key') == 'value'
+  ```
+  It can also be a list of expressions:
+  
+  ```yaml
+  expression:
+    - expr('result.key') == expr('previous.key') # check that result['key'] == saved_results['previous']['key']
+    - not expr(result.key2) # negate the value of result['key']
+  ```
+
+
+###Misc###
+If you want to evaluate an expression before the endpoint is executed, then `pre_eval_expr` is here for you. For
+example:
+```yaml
+  - my.endpoint
+    save_result: res
+  - my.other_endpoint
+    save_result: other_res
+  - my.last_endpoint:
+      body: res
+    pre_eval_expr: body['my_key'] = expr('other_res.key[0]')
+```
+the last endpoint call will modify the body right before the call. Notice that we used a jsonpath expression on the
+right-hand side, `expr()` let you do that. You can use any python expression, so this can be dangerous. If you want to
+access the saved values without using a jsonpath expression use the dictionary `self.output_results`, hence the
+expression `expr('other_res.key[0]')` amounts to `saved_results['other_res']['key'][0]`. This can be useful if you
+want to handle cases not supported by jsonpath. You can modify only `body` and access only `saved_results` and `body`
+itself.
+
+You can also use `eval_expr` to evaluate an expression after the execution of an endpoint. This can be useful if you
+want your changes to be used by all the other endpoints. The previous example becomes:
+```yaml
+  - my.other_endpoint
+    save_result: other_res
+  - my.endpoint
+    save_result: res
+    eval_expr: result['my_key'] = saved_results['other_res']['key'][0]
+  - my.last_endpoint:
+      body: res
+```
+The output of an endpoint is called `result`, any modification to it will be saved. Beware that `eval_expr` let you
+modify only `result`, and let you access only `saved_results` and `result` itself.
 
 ## Authentication ##
 To use services that require authentication, you have to call the script with `--auth=config.yaml` where `config.yaml` is a file containing the key `auth` as in:
