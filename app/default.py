@@ -258,6 +258,8 @@ class CommandParser():
                         msg = e.message
                     raise RuntimeError("The executed command was: {}\nMessage: {}".
                                        format(endpoint.replace("\.execute()", ""), msg))
+                else:
+                    result = None
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
             if not repeat and status != check_code:
