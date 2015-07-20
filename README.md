@@ -161,21 +161,20 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
 - `delay`, the time to wait between the calls
 - `max`, the maximum number of retries, set it to `0` for unlimited
 - `conditions`, contain the conditions to check
-* `code`, check the return code of the endpoint
-* `message`, check the return error message of the endpoint
-* `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and
-  `saved_results`. For example
+  * `code`, check the return code of the endpoint
+  * `message`, check the return error message of the endpoint
+  * `expression`, a python expression just like `eval_expr`, its return has to be boolean. It has access to `result` and `saved_results`. For example
 
-  ```yaml
-  expression: expr('result.key') == 'value'
-  ```
-  It can also be a list of expressions:
-  
-  ```yaml
-  expression:
-    - expr('result.key') == expr('previous.key') # check that result['key'] == saved_results['previous']['key']
-    - not expr(result.key2) # negate the value of result['key']
-  ```
+    ```yaml
+    expression: expr('result.key') == 'value'
+    ```
+    It can also be a list of expressions:
+    
+    ```yaml
+    expression:
+      - expr('result.key') == expr('previous.key') # check that result['key'] == saved_results['previous']['key']
+      - not expr(result.key2) # negate the value of result['key']
+    ```
 
 
 ###Misc###
