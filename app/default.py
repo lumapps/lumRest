@@ -259,6 +259,8 @@ class CommandParser():
                     raise RuntimeError("The executed command was: {}\nMessage: {}".
                                        format(endpoint.replace("\.execute()", ""), msg))
                 else:
+                    if hasattr(e, 'resp'):
+                        status = e.resp["status"]
                     result = None
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
