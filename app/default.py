@@ -92,7 +92,7 @@ class CommandParser():
                     service_config = self.scenario['service']
                     if 'auth' in command['config']:
                         for key, val in command['config']['auth'].iteritems():
-                            if isinstance(val, unicode):
+                            if isinstance(val, unicode) or isinstance(val, str):
                                 config['auth'][key] = self.eval_expr(val)
                             else:
                                 config['auth'][key] = val
