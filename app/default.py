@@ -432,10 +432,10 @@ class CommandParser():
         ns = {'saved_results': saved_results, 'result': result, 'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)}
 
         def check(l, r):
-            l == r if mode == 'while' else l != r
+            return l == r if mode == 'while' else l != r
 
         def check_bool(l):
-            l if mode == 'while' else not l
+            return l if mode == 'while' else not l
 
         if has_code and not check(code, status):
             return False
