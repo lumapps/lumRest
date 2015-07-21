@@ -217,7 +217,13 @@ class CommandParser():
                         # avoid to use `self.eval_expr` in the yml by using `expr` directly
                         expr = lambda e: self.eval_expr('{{' + e + '}}')
 
-                        ns = {'saved_results': self.output_results, 'body': val, 'expr': lambda e: self.eval_expr('{{' + e + '}}')}
+                        saved_results = self.output_results
+                        saved_results['body'] = body
+                        ns = {
+                                'saved_results': saved_results,
+                                'body': val,
+                                'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)
+                             }
 
                         if pre_eval_expr:
                             if isinstance(pre_eval_expr, str) or isinstance(pre_eval_expr, unicode):
@@ -432,13 +438,17 @@ class CommandParser():
         cont = True
         saved_results = self.output_results
         saved_results['result'] = result
-        ns = {'saved_results': saved_results, 'result': result, 'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)}
+        ns = {
+                'saved_results': saved_results,
+                'result': result,
+                'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)
+             }
 
         def check(l, r):
             return l == r if mode == 'while' else l != r
 
         def check_bool(l):
-            return l if mode == 'while' else not l
+            return check(l, True)
 
         if has_code and not check(code, status):
             return False
