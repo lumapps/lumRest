@@ -55,6 +55,7 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `description`: a short description of the test case.
 - `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
 - `pre_eval_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
+- `post_delay`: wait for an amount of time before launching the next command.
 
 Suppose we have the following urlshortener example:
 ```yaml
@@ -148,7 +149,7 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
 ```yaml
   - my.endpoint
     repeat:
-      mode: until|while (default: while) 
+      mode: until|while (default: while)
       delay: <float> (default: 1)
       max: <int> (default: 5)
       conditions:
@@ -169,7 +170,7 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
     expression: expr('result.key') == 'value'
     ```
     It can also be a list of expressions:
-    
+
     ```yaml
     expression:
       - expr('result.key') == expr('previous.key') # check that result['key'] == saved_results['previous']['key']

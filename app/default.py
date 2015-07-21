@@ -104,7 +104,16 @@ class CommandParser():
                     service = get_service(service_config, config.get('auth', None))
                     command.pop('config')
 
+                delay = None
+                if 'post_delay' in command:
+                    delay = command['post_delay']
+                    command.pop('post_delay')
+
                 self.__parse_command(command, service, self.scenario_root)
+
+                if delay:
+                    print "Wait {} seconds".format(delay)
+                    time.sleep(delay)
             except AssertionError:
                 error = True
             except Exception, e:
