@@ -417,7 +417,9 @@ class CommandParser():
         delay = repeat.get('delay', 1.0)
         maximum = repeat.get('max', 5)
         conditions = repeat.get('conditions', {'code': 200, 'message': None, 'expression': None})
+        has_code = conditions.get('code') is not None
         code = conditions.get('code', 200)
+        has_message = conditions.get('message') is not None
         message = conditions.get('message', None)
         expression = conditions.get('expression', None)
 
@@ -427,18 +429,22 @@ class CommandParser():
         cont = True
         saved_results = self.output_results
         saved_results['result'] = result
-        ns = {'saved_results': saved_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
-        
-        check = lambda l, r: l == r if mode == 'while' else l != r
+        ns = {'saved_results': saved_results, 'result': result, 'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)}
 
-        if code and not check(code, status):
+        def check(l, r):
+            l == r if mode == 'while' else l != r
+
+        def check_bool(l):
+            l if mode == 'while' else not l
+
+        if has_code and not check(code, status):
             return False
-        if message and not check(message, msg):
+        if has_message and not check(message, msg):
             return False
 
         if isinstance(expression, str) or isinstance(expression, unicode):
             exec 'expression = ({})'.format(expression) in ns
-            cont = ns['expression']
+            cont = check_bool(ns['expression'])
         elif isinstance(expression, list):
             if mode == 'while':
                 cont = True
@@ -449,16 +455,16 @@ class CommandParser():
                 cont = False
                 for e in expression:
                     exec 'expression = ({})'.format(expression) in ns
-                    cont = cont or ns['expression']
+                    cont = cont or not ns['expression']
         if not cont:
             return False
 
         time.sleep(delay)
         return True
 
-    def eval_expr(self, val):
+    def eval_expr(self, val, container=None):
         match = self.expression_matcher.match(val)
         if match:
             # raises a ValueError, to be catched upper in the stack
-            val = self.__parse_expression(match.group(1))
+            val = self.__parse_expression(match.group(1), container=container)
         return val
