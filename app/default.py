@@ -218,7 +218,7 @@ class CommandParser():
                         expr = lambda e: self.eval_expr('{{' + e + '}}')
 
                         saved_results = self.output_results
-                        saved_results['body'] = body
+                        saved_results['body'] = val
                         ns = {
                                 'saved_results': saved_results,
                                 'body': val,
