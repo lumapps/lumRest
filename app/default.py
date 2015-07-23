@@ -9,6 +9,7 @@ import utils as ju
 from utils import pretty_json, check_json
 from app.oauth import OAuth
 
+
 def get_service(service_config, auth_config=None, provider="GOOGLE"):
     if provider == "GOOGLE":
         if auth_config:
@@ -21,7 +22,8 @@ def get_service(service_config, auth_config=None, provider="GOOGLE"):
                                     discoveryUrl=service_config['discovery_url'])
         else:
             return apiclient.discovery.build(service_config['api'], service_config['version'],
-                                            discoveryServiceUrl=service_config['discovery_url'])
+                                             discoveryServiceUrl=service_config['discovery_url'])
+
 
 class CommandParser():
     """
@@ -83,7 +85,7 @@ class CommandParser():
         for command in commands:
             try:
                 if isinstance(command, unicode) or isinstance(command, str):
-                    command = {command:[]}
+                    command = {command: []}
 
                 service = self.service
                 # change the auth temporarily
@@ -228,11 +230,9 @@ class CommandParser():
 
                         saved_results = self.output_results
                         saved_results['body'] = val
-                        ns = {
-                                'saved_results': saved_results,
-                                'body': val,
-                                'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)
-                             }
+                        ns = {'saved_results': saved_results,
+                              'body': val,
+                              'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)}
 
                         if pre_eval_expr:
                             if isinstance(pre_eval_expr, str) or isinstance(pre_eval_expr, unicode):
@@ -297,7 +297,9 @@ class CommandParser():
                 ))
 
             if eval_expr:
-                ns = {'saved_results': self.output_results, 'result': result, 'expr': lambda e: self.eval_expr('{{'+e+'}}')}
+                ns = {'saved_results': self.output_results,
+                      'result': result,
+                      'expr': lambda e: self.eval_expr('{{' + e + '}}')}
 
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
                     exec eval_expr in ns
@@ -447,11 +449,9 @@ class CommandParser():
         cont = True
         saved_results = self.output_results
         saved_results['result'] = result
-        ns = {
-                'saved_results': saved_results,
-                'result': result,
-                'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)
-             }
+        ns = {'saved_results': saved_results,
+              'result': result,
+              'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)}
 
         def check(l, r):
             return l == r if mode == 'while' else l != r
