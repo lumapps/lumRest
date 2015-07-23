@@ -2,6 +2,7 @@ import traceback
 import os
 import json
 import re
+import yaml
 import time
 import apiclient
 from jsonpath import jsonpath
@@ -43,8 +44,52 @@ class CommandParser():
         else:
             self.debug = False
 
+        if 'commands' not in scene:
+            raise ValueError("The scenario file has to contain a `commands` section")
+
         # authenticate
         self.service = get_service(scene['service'], config.get('auth', None))
+
+        # if we have setup includes, prepend them
+        if 'setup' in scene:
+            setup = scene['setup']
+            if isinstance(setup, str) or isinstance(setup, unicode):
+                setup = [setup]
+
+            if not isinstance(setup, list):
+                raise ValueError("Setup must be either a list of filenames or a single filename")
+
+            for setup_file in setup:
+                setup_file = os.path.join(scene_root, setup_file)
+                if not os.path.isfile(setup_file):
+                    raise RuntimeError("{} does not exist".format(setup_file))
+
+                with open(setup_file, 'r') as f:
+                    setup_yml = yaml.load(f)
+
+                    if 'commands' in setup_yml:
+                        scene['commands'] = setup_yml['commands'] + scene['commands']
+
+        # if we have teardown includes, append them
+        if 'teardown' in scene:
+            teardown = scene['teardown']
+            if isinstance(teardown, str) or isinstance(teardown, unicode):
+                teardown = [teardown]
+
+            if not isinstance(teardown, list):
+                raise ValueError("teardown must be either a list of filenames or a single filename")
+
+            for teardown_file in teardown:
+                teardown_file = os.path.join(scene_root, teardown_file)
+
+                if not os.path.isfile(teardown_file):
+                    raise RuntimeError("{} does not exist".format(teardown_file))
+
+                with open(teardown_file, 'r') as f:
+                    teardown_yml = yaml.load(f)
+
+                    if 'commands' in teardown_yml:
+                        scene['commands'].extend(teardown_yml['commands'])
 
     def parse(self):
         """
@@ -76,9 +121,6 @@ class CommandParser():
             to check that the result respects its pattern.
         """
         print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
-
-        if 'commands' not in self.scenario:
-            raise ValueError("The scenario file has to contain a `commands` section")
 
         commands = self.scenario['commands']
         error = False

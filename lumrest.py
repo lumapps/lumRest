@@ -1,10 +1,11 @@
 #!/usr/bin/env python2
-import sys, os, json, argparse, re
+import sys
+import os
+import argparse
 import yaml
-from app.oauth import OAuth
 from app.expression import expr_constructor, json_constructor
 from app import default
-import apiclient
+
 
 def main():
     parser = argparse.ArgumentParser(description='Endpoint tester')
@@ -33,7 +34,6 @@ def main():
         yaml.add_constructor('!expr', expr_constructor)
         yaml.add_constructor('!json', json_constructor)
         scene = yaml.load(sys.stdin.read())
-
 
     if args.auth:
         # check that there is a config file
