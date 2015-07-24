@@ -1,5 +1,6 @@
 import traceback
 import os
+import sys
 import json
 import re
 import yaml
@@ -43,6 +44,9 @@ class CommandParser():
             self.debug = self.config['debug']
         else:
             self.debug = False
+
+        if scene.get('skip', False):
+            sys.exit(0)
 
         if 'commands' not in scene:
             raise ValueError("The scenario file has to contain a `commands` section")
