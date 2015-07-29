@@ -6,6 +6,7 @@ import re
 import yaml
 import time
 import apiclient
+from httplib import BadStatusLine
 from jsonpath import jsonpath
 import utils as ju
 from utils import pretty_json, check_json
@@ -305,27 +306,39 @@ class CommandParser():
             # run the endpoint request
             status = 200
             message = None
-            try:
-                result = eval(endpoint)
-            except Exception, e:
-                try:
-                    message = json.loads(e.content).get('error').get('message')
-                except:
-                    pass
 
-                if check_code and hasattr(e, 'resp') and e.resp["status"] == str(check_code):
-                    status = check_code
-                elif not repeat:
-                    if len(e.message) == 0:
-                        msg = e.__str__()
+            retry = True
+            while retry:
+                try:
+                    ns = {'service': service}
+                    exec "result = {}".format(endpoint) in ns
+                    result = ns['result']
+                    retry = False
+                except BadStatusLine, e:
+                    print "RETRYING: {}".format(endpoint)
+                    retry = True
+                    time.sleep(1)
+                except Exception, e:
+                    retry = False
+                    try:
+                        message = json.loads(e.content).get('error').get('message')
+                    except:
+                        pass
+
+                    if check_code and hasattr(e, 'resp') and e.resp["status"] == str(check_code):
+                        status = check_code
+                    elif not repeat:
+                        if len(e.message) == 0:
+                            msg = e.__str__()
+                        else:
+                            msg = e.message
+                        print traceback.format_exc()
+                        raise RuntimeError("The executed command was: {}\nMessage: {}".
+                                           format(endpoint.replace("\.execute()", ""), msg))
                     else:
-                        msg = e.message
-                    raise RuntimeError("The executed command was: {}\nMessage: {}".
-                                       format(endpoint.replace("\.execute()", ""), msg))
-                else:
-                    if hasattr(e, 'resp'):
-                        status = e.resp["status"]
-                    result = None
+                        if hasattr(e, 'resp'):
+                            status = e.resp["status"]
+                        result = None
             print "Done in {}ms".format(int(round((time.time() - exec_time) * 1000)))
 
             if not repeat and status != check_code:
