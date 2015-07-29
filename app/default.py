@@ -308,7 +308,9 @@ class CommandParser():
             message = None
 
             retry = True
-            while retry:
+            nb_retries = 5
+            while retry and nb_retries > 0:
+                nb_retries -= 1
                 try:
                     ns = {'service': service}
                     exec "result = {}".format(endpoint) in ns
