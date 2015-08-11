@@ -87,7 +87,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
         # if we expect not having this path
         if expectation[key] == 'nil':
             if not light_assert(not result.has_key(key),
-                                "The result should not have the path : {}".format(path),
+                                u"The result should not have the path : {}".format(path),
                                 exit_on_error=exit_on_error):
                 no_error = False
 
@@ -96,7 +96,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
 
         # otherwise ensures that the result has the same path
         elif not light_assert(result.has_key(key),
-                              "The result does not have the path : {}".format(path),
+                              u"The result does not have the path : {}".format(path),
                               exit_on_error=exit_on_error):
             no_error = False
             continue
@@ -112,7 +112,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             if len(exp) > 0 :
                 no_error = light_assert(
                     re.match('#.*#', str(exp[0])),
-                    "The first element in the expectation list has to be a pattern enclosed in #, you gave {}".format(exp[0]),
+                    u"The first element in the expectation list has to be a pattern enclosed in #, you gave {}".format(exp[0]),
                     exit_on_error=exit_on_error)
                 pattern = str(exp[0])
 
@@ -122,21 +122,21 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             if len(exp) == 0:
                 no_error = light_assert(
                     len(res) == 0,
-                    'The number of results in path "{}" is not empty as expected (there were {} entries)'.format(path, len(exp)),
+                    u'The number of results in path "{}" is not empty as expected (there were {} entries)'.format(path, len(exp)),
                     exit_on_error=exit_on_error)
 
             # Check that we have the same number of entries
             elif len(exp) == 1 and re.match('#=[0-9]+#', pattern):
                 no_error = light_assert(
                     len(res) == int(re.findall('#=([0-9]+)#', exp[0])[0]),
-                    'The number of results in path "{}" does not match what expected (there were {} entries rather than {})'.format(path, len(res), int(re.findall('#=([0-9]+)', exp[0])[0])),
+                    u'The number of results in path "{}" does not match what expected (there were {} entries rather than {})'.format(path, len(res), int(re.findall('#=([0-9]+)', exp[0])[0])),
                     exit_on_error=exit_on_error)
 
             # Check that we have at least one entry
             elif len(exp) == 1 and pattern == "#+#":
                 no_error = light_assert(
                     len(res) > 0,
-                    'The number of results in path "{}" is empty'.format(path, len(res), len(exp)),
+                    u'The number of results in path "{}" is empty'.format(path, len(res), len(exp)),
                     exit_on_error=exit_on_error)
 
             # If any number, do nothing
@@ -147,7 +147,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             elif len(exp) == 1 and pattern == "#PATTERN#":
                 no_error = light_assert(
                     len(res) > 0,
-                    'The number of results in path "{}" is empty'.format(path, len(res), len(exp)),
+                    u'The number of results in path "{}" is empty'.format(path, len(res), len(exp)),
                     exit_on_error=exit_on_error)
 
                 for index, entry in enumerate(res):
@@ -157,7 +157,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             elif len(exp) > 0 and pattern == "#ALL#":
                 no_error = light_assert(
                     len(res) == len(exp),
-                    'The number of results in path "{}" does not match what expected (there were {} entries rather than {})'.format(path, len(res), len(exp)),
+                    u'The number of results in path "{}" does not match what expected (there were {} entries rather than {})'.format(path, len(res), len(exp)),
                     exit_on_error=exit_on_error)
 
                 iterations = 0
@@ -185,7 +185,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                 reg = re.compile(exp)
                 no_error = light_assert(
                     reg.match(res),
-                    ('The result "{}" does not match the regex "{}"'
+                    (u'The result "{}" does not match the regex "{}"'
                      '\n* PATH : {}').format(res, exp, path),
                     exit_on_error=exit_on_error)
             elif not skip_errors:
