@@ -176,8 +176,8 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                     'The results in path "{}" do not match what expected'.format(path),
                     exit_on_error=exit_on_error)
         else:
-            exp = str(exp)
-            res = str(res)
+            exp = unicode(exp)
+            res = unicode(res)
 
             # if we are requesting a regexp
             if exp.startswith("#r#"):
@@ -191,7 +191,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             elif not skip_errors:
                 no_error = light_assert(
                     res == exp,
-                    ('The result "{}" does not match "{}"'
+                    (u'The result "{}" does not match "{}"'
                      '\n* PATH : {}').format(res, exp, path),
                     exit_on_error=exit_on_error)
             elif skip_errors and res == exp:
