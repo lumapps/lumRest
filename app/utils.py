@@ -111,10 +111,10 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             pattern = ""
             if len(exp) > 0 :
                 no_error = light_assert(
-                    re.match('#.*#', str(exp[0])),
+                    re.match('#.*#', unicode(exp[0])),
                     u"The first element in the expectation list has to be a pattern enclosed in #, you gave {}".format(exp[0]),
                     exit_on_error=exit_on_error)
-                pattern = str(exp[0])
+                pattern = unicode(exp[0])
 
                 if len(exp) > 1:
                     exp = exp[1:]
@@ -186,13 +186,13 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                 no_error = light_assert(
                     reg.match(res),
                     (u'The result "{}" does not match the regex "{}"'
-                     '\n* PATH : {}').format(res, exp, path),
+                     u'\n* PATH : {}').format(res, exp, path),
                     exit_on_error=exit_on_error)
             elif not skip_errors:
                 no_error = light_assert(
                     res == exp,
                     (u'The result "{}" does not match "{}"'
-                     '\n* PATH : {}').format(res, exp, path),
+                     u'\n* PATH : {}').format(res, exp, path),
                     exit_on_error=exit_on_error)
             elif skip_errors and res == exp:
                 no_error = True
