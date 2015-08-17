@@ -14,7 +14,12 @@ def main():
     parser.add_argument("scenario_file", metavar='SCENARIO_FILE', type=str, nargs="?",
                         help='The path to the scenario file')
     parser.add_argument("-X", action="store_true", default=False, help='Stop at the first error')
+    parser.add_argument("--version", action="store_true", default=False, help='Get version number')
     args = parser.parse_args()
+
+    if args.version:
+        print default.__version__
+        return 0
 
     if args.scenario_file:
         scenario_root = os.path.abspath(os.path.join(os.path.abspath(args.scenario_file), os.pardir))
