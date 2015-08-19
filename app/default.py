@@ -363,7 +363,7 @@ class CommandParser():
             if eval_expr:
                 ns = {'saved_results': self.output_results,
                       'result': result,
-                      'expr': lambda e: self.eval_expr('{{' + e + '}}')}
+                      'expr': lambda e, container=self.output_results: self.eval_expr('{{' + e + '}}', container)}
 
                 if isinstance(eval_expr, str) or isinstance(eval_expr, unicode):
                     exec eval_expr in ns
