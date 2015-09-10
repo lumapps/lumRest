@@ -67,3 +67,25 @@ target/
 
 # config files
 config.yaml
+
+# IDE project files and various temp files
+.tmp
+.sass-cache
+.idea
+.ropeproject
+*.*~*
+*.sublime-workspace
+
+# MacOS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
