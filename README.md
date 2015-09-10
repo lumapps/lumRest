@@ -134,6 +134,11 @@ The `check_result` json content has some additional parameters that can be used 
     "key" : [ "#ALL#", obj1, obj2]
     ```
     checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
+    * Lists starting with `"#MATCH#"` check that all the entries of the list respect the pattern of each corresponding object in the list. For instance, the template:
+    ```json
+    "key" : [ "#MATCH#", { "key2" : "value" }, { "key3" : "#r#val" }]
+    ```
+    checks that the result has exactly the two entries, and one result of the list is matching `{ "key2" : "value" }`, and another match `{ "key3" : "#r#val" } pattern`. The order of these entries is not important.
 
 One can also check the HTTP code returned by the endpoint by using `check_code`. By default it checks that the endpoint
 returns `200`. To check the return error message, use `check_message`, a good combination can be:
