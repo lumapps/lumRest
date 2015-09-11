@@ -140,14 +140,17 @@ class CommandParser():
                 service = self.service
                 # change the auth temporarily
                 if 'config' in command:
-                    config = self.config
+                    config = dict(self.config)
                     service_config = self.scenario['service']
                     if 'auth' in command['config']:
-                        for key, val in command['config']['auth'].iteritems():
-                            if isinstance(val, unicode) or isinstance(val, str):
-                                config['auth'][key] = self.eval_expr(val)
-                            else:
-                                config['auth'][key] = val
+                        if command['config']['auth']:
+                            for key, val in command['config']['auth'].iteritems():
+                                if isinstance(val, unicode) or isinstance(val, str):
+                                    config['auth'][key] = self.eval_expr(val)
+                                else:
+                                    config['auth'][key] = val
+                        else:
+                            config['auth'] = None
 
                     if 'service' in command['config']:
                         for key, val in command['config']['service'].iteritems():
