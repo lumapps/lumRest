@@ -231,6 +231,21 @@ auth:
   oauth_scope:
       - "https://www.googleapis.com/auth/userinfo.email"
 ```
+To override global configuration for one test case, you can set :
+```yaml
+- my.endpoint:
+  config:
+    auth:
+      email: "someone.else@somewhere.net"
+```
+with same parameters as auth.yaml.
+
+If you want to execute one test case without authentication, you can set:
+```yaml
+- my.endpoint:
+  config:
+    auth: null
+```
 
 See [Getting Started with Google Tasks API on Google App Engine](https://cloud.google.com/appengine/articles/python/getting_started_with_tasks_api) for more details.
 
