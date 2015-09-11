@@ -92,6 +92,11 @@ print_result:
     - !expr status
 ```
 the script prints the commands successively.
+
+To display a property for each item of a list, use `as list` parameter at the end of the expression. For example:
+```yaml
+print_result: !expr items.*.id as list
+```
 #### Check ####
 The option `check_result` behaves exactly as the `body` argument of the commands. The json content is parsed and the script checks that every entry in the `check_result` json content is in the response. If some data is in the response and not in the json content, no error is raised.
 
