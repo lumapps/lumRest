@@ -106,6 +106,10 @@ The `check_result` json content has some additional parameters that can be used 
     ```json
     "key" : "#r#value"
     ```
+    * Check that `"key"` is not set in what was received
+    ```json
+    "key": nil
+    ```
 
 - For Lists, we can check almost anything
     * Empty list means that the result has to be empty
