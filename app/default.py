@@ -68,13 +68,15 @@ class CommandParser():
                 raise ValueError("Setup must be either a list of filenames or a single filename")
 
             for setup_file in setup:
-                setup_file = re.sub(r'^\.\/', scene_root, setup_file)
+                setup_file = re.sub(r'^\./', scene_root, setup_file)
                 # setup_file = os.path.join(scene_root, setup_file)
                 if not os.path.isfile(setup_file):
                     raise RuntimeError("{} does not exist".format(setup_file))
 
                 with open(setup_file, 'r') as f:
-                    setup_yml = yaml.load(f)
+                    f_content = f.read()
+                    f_content = re.sub(r'^\.', os.path.split(os.path.abspath(setup_file))[0], f_content)
+                    setup_yml = yaml.load(f_content)
 
                     if 'commands' in setup_yml:
                         scene['commands'] = setup_yml['commands'] + scene['commands']
@@ -268,7 +270,7 @@ class CommandParser():
                                 # raises a ValueError, to be catched upper in the stack
                                 val = self.__parse_expression(match.group(1))
                             else:
-                                body_file = os.path.join(scenario_root, val)
+                                body_file = re.sub(r'^\./', "{}/".format(scenario_root), val)
                                 if not os.path.isfile(body_file):
                                     print "{} does not exist".format(body_file)
                                     continue
