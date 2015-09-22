@@ -68,6 +68,7 @@ class CommandParser():
                 raise ValueError("Setup must be either a list of filenames or a single filename")
 
             for setup_file in setup:
+                setup_file = re.sub(r'^\.\/', scene_root, setup_file)
                 # setup_file = os.path.join(scene_root, setup_file)
                 if not os.path.isfile(setup_file):
                     raise RuntimeError("{} does not exist".format(setup_file))
