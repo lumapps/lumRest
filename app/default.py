@@ -75,7 +75,8 @@ class CommandParser():
 
                 with open(setup_file, 'r') as f:
                     f_content = f.read()
-                    f_content = re.sub(r'^\.', os.path.split(os.path.abspath(setup_file))[0], f_content)
+                    f_content = re.sub(r'(\s+body:\s*)\.\/(.*json)',
+                                       r'\1{}/\2'.format(os.path.split(os.path.abspath(setup_file))[0]), f_content)
                     setup_yml = yaml.load(f_content)
 
                     if 'commands' in setup_yml:
