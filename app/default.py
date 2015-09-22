@@ -13,7 +13,7 @@ from utils import pretty_json, check_json
 from app.oauth import OAuth
 
 
-__version__ = '0.101'
+__version__ = '0.102'
 
 
 def get_service(service_config, auth_config=None, provider="GOOGLE"):
@@ -68,7 +68,7 @@ class CommandParser():
                 raise ValueError("Setup must be either a list of filenames or a single filename")
 
             for setup_file in setup:
-                setup_file = os.path.join(scene_root, setup_file)
+                # setup_file = os.path.join(scene_root, setup_file)
                 if not os.path.isfile(setup_file):
                     raise RuntimeError("{} does not exist".format(setup_file))
 
