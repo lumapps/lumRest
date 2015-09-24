@@ -14,7 +14,7 @@ from utils import pretty_json, check_json
 from app.oauth import OAuth
 
 
-__version__ = '0.102'
+__version__ = '0.110'
 
 
 def get_service(service_config, auth_config=None, provider="GOOGLE"):
