@@ -1,3 +1,4 @@
+import subprocess
 import traceback
 import os
 import sys
@@ -13,7 +14,7 @@ from utils import pretty_json, check_json
 from app.oauth import OAuth
 
 
-__version__ = '0.102'
+__version__ = '0.110'
 
 
 def get_service(service_config, auth_config=None, provider="GOOGLE"):
@@ -43,6 +44,10 @@ class CommandParser():
         self.scenario_root = scene_root
         self.config = config
         self.exit_on_error = exit_on_error
+        self.hooks = {
+            "setup": None,
+            "teardown": None,
+        }
 
         if 'debug' in self.config:
             self.debug = self.config['debug']
@@ -57,6 +62,14 @@ class CommandParser():
 
         # authenticate
         self.service = get_service(scene['service'], config.get('auth', None))
+
+        if 'hooks' in scene:
+            hooks = scene['hooks']
+            if not isinstance(hooks, dict):
+                raise ValueError("Hooks must be a dict")
+
+            self.hooks["setup"] = re.sub(r'^\./', scene_root, hooks.get("setup"))
+            self.hooks["teardown"] = re.sub(r'^\./', scene_root, hooks.get("teardown"))
 
         # if we have setup includes, prepend them
         if 'setup' in scene:
@@ -132,6 +145,10 @@ class CommandParser():
         - `check_result`: given a json file, uses `json_utils.check_json()`
             to check that the result respects its pattern.
         """
+        if self.hooks.get("setup"):
+            print "Running setup hook {}".format(self.hooks["setup"])
+            subprocess.call("./{}".format(self.hooks["setup"]), shell=True)
+
         print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
 
         commands = self.scenario['commands']
@@ -185,6 +202,11 @@ class CommandParser():
             finally:
                 if error and self.exit_on_error:
                     return error
+
+        if self.hooks.get("teardown"):
+            print "Running teardown hook {}".format(self.hooks["teardown"])
+            subprocess.call("./{}".format(self.hooks["teardown"]), shell=True)
+
         return error
 
     def __parse_command(self, command, service, scenario_root):
