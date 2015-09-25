@@ -68,8 +68,8 @@ class CommandParser():
             if not isinstance(hooks, dict):
                 raise ValueError("Hooks must be a dict")
 
-            self.hooks["setup"] = hooks.get("setup")
-            self.hooks["teardown"] = hooks.get("teardown")
+            self.hooks["setup"] = re.sub(r'^\./', scene_root, hooks.get("setup"))
+            self.hooks["teardown"] = re.sub(r'^\./', scene_root, hooks.get("teardown"))
 
         # if we have setup includes, prepend them
         if 'setup' in scene:
