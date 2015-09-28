@@ -192,6 +192,21 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
     ```
     If a previous `saved_results` value is named `result`, then it will be overriden.
 
+###Hooks###
+
+You can  execute a shell script before and after a scenario execution using hooks.
+
+In order to do this you must include a `hooks` rule in your scenario :
+
+```
+hooks:
+    setup: my_setup_script.sh
+    teardown: my_teardown_script.sh
+```
+
+The `setup` script will be executed before the scenario starts and the `teardown` script will be execute after the scenario starts.
+
+You can use these commands to initialize and reset your test environment.
 
 ###Misc###
 If you want to evaluate an expression before the endpoint is executed, then `pre_eval_expr` is here for you. For
