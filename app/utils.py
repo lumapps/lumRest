@@ -175,7 +175,24 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                     iterations == len(res) and len(entries) == 0,
                     'The results in path "{}" do not match what expected'.format(path),
                     exit_on_error=exit_on_error)
+            # Check that at least one entry match the expectation
+            elif len(exp) > 0 and pattern == "#ANY#":
+                match = False
+                iterations = 0
+                entries = range(len(res))
+                while iterations < len(res):
+                    for idx in entries:
+                        no_err = check_json(res[idx], exp[0], path + "[{}]".format(idx + 1), exit_on_error=False,
+                                skip_errors=True)
+                        if no_err:
+                            entries.remove(idx)
+                            break
+                    iterations += 1
 
+                no_error = light_assert(
+                    match == True,
+                    'The results in path "{}" do not match what expected'.format(path),
+                    exit_on_error=exit_on_error)
             # Check all entries are matching elements.
             # It's a mix of PATTERN and ALL.
             # Number of items must match number of expected results, and expected results must respect pattern.
