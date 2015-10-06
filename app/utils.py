@@ -176,6 +176,18 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                     'The results in path "{}" do not match what expected'.format(path),
                     exit_on_error=exit_on_error)
 
+            # Check that at least one entry match the expectation
+            elif len(exp) > 0 and pattern == "#ANY#":
+                no_error = light_assert(
+                    len(exp) == 1,
+                    u'The number of items in #ANY# command must be exactly 2 (there was {})'.format(len(exp)),
+                    exit_on_error=exit_on_error)
+
+                no_error = light_assert(
+                    any([r == exp[0] for r in res]),
+                    'The results in path "{}" do not match what expected'.format(path),
+                    exit_on_error=exit_on_error)
+
             # Check all entries are matching elements.
             # It's a mix of PATTERN and ALL.
             # Number of items must match number of expected results, and expected results must respect pattern.
