@@ -338,6 +338,7 @@ class CommandParser():
             # run the endpoint request
             status = 200
             message = None
+            result = None
 
             retry = True
             nb_retries = 5
@@ -437,6 +438,7 @@ class CommandParser():
                         # we have an expression!
                         match = self.expression_matcher.match(expr)
                         if match:
+                            val = None
                             try:
                                 val = self.__parse_expression(match.group(1), container=result)
                             except Exception, e:
