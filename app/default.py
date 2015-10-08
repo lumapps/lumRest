@@ -80,6 +80,7 @@ class CommandParser():
             if not isinstance(setup, list):
                 raise ValueError("Setup must be either a list of filenames or a single filename")
 
+            allSetupCommands = []
             for setup_file in setup:
                 setup_file = re.sub(r'^\./', scene_root, setup_file)
                 # setup_file = os.path.join(scene_root, setup_file)
@@ -93,7 +94,9 @@ class CommandParser():
                     setup_yml = yaml.load(f_content)
 
                     if 'commands' in setup_yml:
-                        scene['commands'] = setup_yml['commands'] + scene['commands']
+                        allSetupCommands.extend(setup_yml['commands'])
+
+            scene['commands'] = allSetupCommands + scene['commands']
 
         # if we have teardown includes, append them
         if 'teardown' in scene:
