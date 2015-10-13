@@ -142,11 +142,12 @@ The `check_result` json content has some additional parameters that can be used 
     ```json
     "key" : [ "#ALL#", obj1, obj2]
     ```
+    checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
     * Lists starting with `"#ANY#"` check that at least one entry of the list respect exactly the pattern of corresponding object. For instance, the template:
     ```json
     "key" : [ "#ANY#", obj1]
     ```
-    checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
+    checks that one of the result items is exactly `obj1`.
     * Lists starting with `"#MATCH#"` check that all the entries of the list respect the pattern of each corresponding object in the list. For instance, the template:
     ```json
     "key" : [ "#MATCH#", { "key2" : "value" }, { "key3" : "#r#val" }]
