@@ -253,18 +253,28 @@ def check_order_values(result, direction, path="$", exit_on_error=False, skip_er
     no_error = True
     previous = None
 
-    for index, val in enumerate(result):
-        if not previous:
-            previous = val
-        else:
-            comparator = "<=" if direction == 'asc' else ">="
-            no_error = light_assert(
-                previous <= val  if direction == 'asc' else previous >= val,
-                u'"The result "{}" is not sorted as expected. {} {} {} is false"'.format(path, previous, comparator,
-                                                                                         val),
-                exit_on_error
-            )
-            previous = val
+    if not direction:
+        direction = 'asc'
+
+    no_error = light_assert(
+        direction in ['asc', 'desc'],
+        u'The sort direction "{}" is incorrect. Must be "{}" or "{}"'.format(direction, 'asc', 'desc'),
+        exit_on_error
+    )
+
+    if no_error:
+        for index, val in enumerate(result):
+            if not previous:
+                previous = val
+            else:
+                comparator = "<=" if direction == 'asc' else ">="
+                no_error = light_assert(
+                    previous <= val if direction == 'asc' else previous >= val,
+                    u'The result "{}" is not sorted as expected. {} {} {} is false'.format(path, previous, comparator,
+                                                                                             val),
+                    exit_on_error
+                )
+                previous = val
 
     if not skip_errors:
         if no_error:
