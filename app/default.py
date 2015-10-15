@@ -8,6 +8,7 @@ import yaml
 import time
 import apiclient
 from httplib import BadStatusLine
+from app.utils import check_order_values
 from jsonpath import jsonpath
 import utils as ju
 from utils import pretty_json, check_json
@@ -223,6 +224,7 @@ class CommandParser():
         check_message = None
         repeat = None
         description = None
+        order = None
 
         # load the check_result json file if provided
         if 'check_result' in command:
@@ -265,6 +267,9 @@ class CommandParser():
 
         if 'description' in command:
             description = unicode(command.pop('description'))
+
+        if 'check_order' in command:
+            order = command.pop('check_order')
 
         if len(command.keys()) != 1:
             raise ValueError("You must provide one and only one endpoint per command, see the manual.\n{}".format(
@@ -469,6 +474,19 @@ class CommandParser():
             if json_pattern:
                 json_pattern = self._parse_body(json_pattern)
                 check_json(result, json_pattern, exit_on_error=self.exit_on_error)
+
+            if order:
+                if isinstance(order, str) or isinstance(order, unicode):
+                    match = self.expression_matcher.match(order)
+                    raise RuntimeError("Expression {} for check_order is incorrect".format(match.group(1)))
+
+                elif isinstance(order, dict):
+                    for expr, direction in order.iteritems():
+                        # we have a list!
+                        match = self.expression_matcher.match(expr)
+                        if match:
+                            val = self.__parse_expression(match.group(1), container=result)
+                            check_order_values(val, direction, path=match.group(1), exit_on_error=self.exit_on_error)
 
     def _parse_body(self, body):
         for key, val in body.iteritems():
