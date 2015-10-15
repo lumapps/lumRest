@@ -51,6 +51,7 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `check_result`: checks that the result respect the given pattern. If a json file is given, reads it and uses it to check  (see [Check](#check))
 - `check_code`: checks the return code form the endpoint. (see [Check](#check))
 - `check_message`: checks the return error message. (see [Check](#check))
+- `check_order`: check if a values in a list are correctly sorted. (see [Check](#check))
 - `repeat`: recalls the endpoint following a set of conditions. (see [Repeat](#repeat))
 - `description`: a short description of the test case.
 - `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
@@ -153,6 +154,15 @@ The `check_result` json content has some additional parameters that can be used 
     "key" : [ "#MATCH#", { "key2" : "value" }, { "key3" : "#r#val" }]
     ```
     checks that the result has exactly the two entries, and one result of the list is matching `{ "key2" : "value" }`, and another match `{ "key3" : "#r#val" } pattern`. The order of these entries is not important.
+
+One can also check that values in a list are correctly sorted by using `check_order`. Specify a criteria and a sort direction. For example:
+```yaml
+- my_endpoint:
+  check_order:
+    !expr items.*.date as list: desc
+    !expr items.*.name as list: asc
+```
+checks that response items are sorted by date desc and by name asc.
 
 One can also check the HTTP code returned by the endpoint by using `check_code`. By default it checks that the endpoint
 returns `200`. To check the return error message, use `check_message`, a good combination can be:
