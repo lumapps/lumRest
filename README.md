@@ -159,10 +159,11 @@ One can also check that values in a list are correctly sorted by using `check_or
 ```yaml
 - my_endpoint:
   check_order:
-    !expr items.*.date as list: desc
-    !expr items.*.name as list: asc
+    - !expr items.*.date as list: desc
+    - !expr items.*.name as list: asc
 ```
 checks that response items are sorted by date desc and by name asc.
+If there are multiple criteria, the second (and following) criteria is used in case of equality for the first criteria.
 
 One can also check the HTTP code returned by the endpoint by using `check_code`. By default it checks that the endpoint
 returns `200`. To check the return error message, use `check_message`, a good combination can be:
