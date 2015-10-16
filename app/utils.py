@@ -246,40 +246,47 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             return no_error
 
 
-def check_order_values(result, direction, path="$", exit_on_error=False, skip_errors=False):
+def check_order_values(results, directions, paths=None, exit_on_error=False, skip_errors=False):
     """
     Check if values are correctly sorted.
+    If there are multiple sort order criteria, check the first, and if there is an equality, check the next criteria
     """
     no_error = True
-    previous = None
 
-    if not direction:
-        direction = 'asc'
+    if no_error and len(results) > 0:
+        previous = None
+        result = results[0]
+        direction = directions[0]
+        path = paths[0] or "$"
 
-    no_error = light_assert(
-        direction in ['asc', 'desc'],
-        u'The sort direction "{}" is incorrect. Must be "{}" or "{}"'.format(direction, 'asc', 'desc'),
-        exit_on_error
-    )
+        no_error = light_assert(
+            direction in ['asc', 'desc'],
+            u'The sort direction "{}" is incorrect. Must be "{}" or "{}"'.format(direction, 'asc', 'desc'),
+            exit_on_error
+        )
 
-    if no_error:
         for index, val in enumerate(result):
             if not previous:
                 previous = val
+            elif previous == val:
+                # if value is identical to previous, check if there is another criteria in the list
+                no_error &= check_order_values(results[1:], directions[1:], paths[1:], exit_on_error, skip_errors)
             else:
                 comparator = "<=" if direction == 'asc' else ">="
-                no_error = light_assert(
+                no_error &= light_assert(
                     previous <= val if direction == 'asc' else previous >= val,
                     u'The result "{}" is not sorted as expected. {} {} {} is false'.format(path, previous, comparator,
-                                                                                             val),
+                                                                                           val),
                     exit_on_error
                 )
                 previous = val
 
-    if not skip_errors:
-        if no_error:
-            print(info_color, path, success_color, bold, "DONE", end_color)
-        else:
-            print(info_color, path, error_color, bold, "FAILURE", end_color)
-    else:
-        return no_error
+
+        if not skip_errors:
+            if no_error:
+                print(info_color, path, success_color, bold, "DONE", end_color)
+            else:
+                print(info_color, path, error_color, bold, "FAILURE", end_color)
+        # else:
+    return no_error
+

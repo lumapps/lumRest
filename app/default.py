@@ -480,13 +480,21 @@ class CommandParser():
                     match = self.expression_matcher.match(order)
                     raise RuntimeError("Expression {} for check_order is incorrect".format(match.group(1)))
 
-                elif isinstance(order, dict):
-                    for expr, direction in order.iteritems():
-                        # we have a list!
-                        match = self.expression_matcher.match(expr)
-                        if match:
-                            val = self.__parse_expression(match.group(1), container=result)
-                            check_order_values(val, direction, path=match.group(1), exit_on_error=self.exit_on_error)
+                elif isinstance(order, list):
+                    values = []
+                    directions = []
+                    paths = []
+                    for criteria in order:
+                        for expr, direction in criteria.iteritems():
+                            # we have a list!
+                            match = self.expression_matcher.match(expr)
+                            if match:
+                                val = self.__parse_expression(match.group(1), container=result)
+                                values.append(val)
+                                directions.append(direction)
+                                paths.append(match.group(1))
+
+                    check_order_values(values, directions, paths, exit_on_error=self.exit_on_error)
 
     def _parse_body(self, body):
         for key, val in body.iteritems():
