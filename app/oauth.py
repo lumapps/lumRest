@@ -38,11 +38,9 @@ class OAuth():
             credentials, http = OAuth.getCredentials(email, scopes, client_secret, client_id)
 
             if discoveryUrl:
-                OAuth.__services[key] = build(api, version, http=http, discoveryServiceUrl=discoveryUrl,
-                                              cache_discovery=False, cache=None)
+                OAuth.__services[key] = build(api, version, http=http, discoveryServiceUrl=discoveryUrl)
             else:
-                OAuth.__services[key] = build(api, version, http=http,
-                                              cache_discovery=False, cache=None)
+                OAuth.__services[key] = build(api, version, http=http)
 
         logging.info("OAuth.getService : Service request by - " + email)
         return OAuth.__services[key]
