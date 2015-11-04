@@ -497,6 +497,7 @@ class CommandParser():
                     check_order_values(values, directions, paths, exit_on_error=self.exit_on_error)
 
     def _parse_body(self, body):
+        body = dict(body)
         for key, val in body.iteritems():
             if isinstance(val, unicode) or isinstance(val, str):
                 match = self.expression_matcher.match(val)
