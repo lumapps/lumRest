@@ -514,7 +514,7 @@ class CommandParser():
                             sub_val = self.__parse_expression(match.group(1))
                             body[key][idx] = sub_val
             elif isinstance(val, dict):
-                self._parse_body(val)
+                body[key] = self._parse_body(val)
         return body
 
     def __parse_expression(self, expression, container=None):
