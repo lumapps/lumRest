@@ -30,7 +30,8 @@ def get_service(service_config, auth_config=None, provider="GOOGLE"):
                                     discoveryUrl=service_config['discovery_url'])
         else:
             return apiclient.discovery.build(service_config['api'], service_config['version'],
-                                             discoveryServiceUrl=service_config['discovery_url'])
+                                             discoveryServiceUrl=service_config['discovery_url'],
+                                             cache_discovery=False, cache=None)
 
 
 class CommandParser():
