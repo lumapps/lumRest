@@ -33,6 +33,7 @@ Google.
 The scenario file has to be in `yaml` format. The possible keys are:
 - `name`: the name of the scenario.
 - `service`: describes the service on which you'd like to run the test (see [Service](#service))
+- `setup`: a list of commands to execute before running scenario (see [Setup](#setup))
 - `import`: include and execute other test case(s). (see [Import](#import))
 - `commands`: the list of commands to be executed (see [Commands](#commands))
 
@@ -44,6 +45,16 @@ service:
     version: "v1"
     discovery_url: "https://www.googleapis.com/discovery/v1/apis/urlshortener/v1/rest"
 ```
+
+### Setup ###
+Setup files can contain only `commands` instructions. These instructions will be executed before current scenario.
+Here is how to include theses files :
+```yaml
+setup:
+    - myfolder/setupfile.yaml
+    - otherfolder/othersetup.yaml
+```
+These setup files are perfect to initialize test cases, for example loading data.
 
 ### Import ###
 Files imported will be executed inside current scenario. It works like setup files, excepted that all files will be interpreted, using their own `service`, `setup`, `import` and `commands`. They will be executed after `setup` and before `commands`.
@@ -90,6 +101,8 @@ To call an endpoint without arguments, do not put the `:` after its name. For in
   - my.endpoint
     print_result: true
 ```
+
+Note: you can ommit `commands` if you set `import` entries.
 
 #### Save ####
 The option `save_result` takes as argument the name of the result that can be used later. The results are stored in a dictionary. Therefore, any reuse of that name in the `save_result` option will overwrite its previous value.
