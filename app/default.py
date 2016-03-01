@@ -44,7 +44,7 @@ class CommandParser():
         self.expression_matcher = re.compile("{{([^{}]*)}}")
         self.scenario = scene
         self.scenario_root = scene_root
-        self.config = config
+        self.config = dict(config)
         self.exit_on_error = exit_on_error
         self.hooks = {
             "setup": None,
