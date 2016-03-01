@@ -57,6 +57,7 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
 - `pre_eval_expr`: evaluate a python expression prior to the execution of the test case. (see [Misc](#misc))
 - `post_delay`: wait for an amount of time before launching the next command.
+- `hooks`: execute a shell script before and/or after a command. (see [Hooks](#hooks))
 
 Suppose we have the following urlshortener example:
 ```yaml
@@ -221,8 +222,9 @@ hooks:
 ```
 
 The `setup` script will be executed before the scenario starts and the `teardown` script will be execute after the scenario starts.
-
 You can use these commands to initialize and reset your test environment.
+
+You can also set hooks for a single command, they will be executed before and after the command execution.
 
 ###Misc###
 If you want to evaluate an expression before the endpoint is executed, then `pre_eval_expr` is here for you. For

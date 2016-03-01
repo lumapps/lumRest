@@ -151,8 +151,7 @@ class CommandParser():
             to check that the result respects its pattern.
         """
         if self.hooks.get("setup"):
-            print "Running setup hook {}".format(self.hooks["setup"])
-            subprocess.call("./{}".format(self.hooks["setup"]), shell=True)
+            self.run_hook(self.hooks["setup"], "setup")
 
         print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
 
@@ -209,8 +208,7 @@ class CommandParser():
                     return error
 
         if self.hooks.get("teardown"):
-            print "Running teardown hook {}".format(self.hooks["teardown"])
-            subprocess.call("./{}".format(self.hooks["teardown"]), shell=True)
+            self.run_hook(self.hooks["teardown"], "teardown")
 
         return error
 
@@ -226,6 +224,7 @@ class CommandParser():
         repeat = None
         description = None
         order = None
+        hooks = None
 
         # load the check_result json file if provided
         if 'check_result' in command:
@@ -272,12 +271,18 @@ class CommandParser():
         if 'check_order' in command:
             order = command.pop('check_order')
 
+        if 'hooks' in command:
+            hooks = command.pop('hooks')
+
         if len(command.keys()) != 1:
             raise ValueError("You must provide one and only one endpoint per command, see the manual.\n{}".format(
                 "\n".join(['- {}'.format(k) for k in command])))
 
         # build the endpoint request
         key = command.keys()[0]
+
+        if hooks and "setup" in hooks:
+            self.run_hook(hooks.get("setup"), "setup")
 
         # import pdb; pdb.set_trace()
         repeat_bool = True
@@ -497,6 +502,9 @@ class CommandParser():
 
                     check_order_values(values, directions, paths, exit_on_error=self.exit_on_error)
 
+        if hooks and "teardown" in hooks:
+            self.run_hook(hooks.get("teardown"), "teardown")
+
     def _parse_body(self, body):
         body = dict(body)
         for key, val in body.iteritems():
@@ -616,3 +624,7 @@ class CommandParser():
             # raises a ValueError, to be catched upper in the stack
             val = self.__parse_expression(match.group(1), container=container)
         return val
+
+    def run_hook(self, command, kind='setup'):
+        print "Running {} hook {}".format(command, kind)
+        subprocess.call("./{}".format(command), shell=True)
