@@ -50,6 +50,7 @@ class CommandParser():
             "setup": None,
             "teardown": None,
         }
+        self.imports = []
 
         if 'debug' in self.config:
             self.debug = self.config['debug']
@@ -100,6 +101,27 @@ class CommandParser():
 
             scene['commands'] = allSetupCommands + scene['commands']
 
+        if 'import' in scene:
+            imports = scene['import']
+            if isinstance(imports, str) or isinstance(imports, unicode):
+                imports = [imports]
+
+            if not isinstance(imports, list):
+                raise ValueError("Imports must be either a list of filenames or a single filename")
+
+            for import_file in imports:
+                import_file = re.sub(r'^\./', scene_root, import_file)
+                if not os.path.isfile(import_file):
+                    raise RuntimeError("{} does not exist".format(import_file))
+
+                with open(import_file, 'r') as f:
+                    f_content = f.read()
+                    f_content = re.sub(r'(\s+body:\s*)\.\/(.*json)',
+                                       r'\1{}/\2'.format(os.path.split(os.path.abspath(import_file))[0]), f_content)
+                    setup_yml = yaml.load(f_content)
+                    self.imports.append(
+                        CommandParser(config, setup_yml, self.scenario_root, exit_on_error=exit_on_error))
+
         # if we have teardown includes, append them
         if 'teardown' in scene:
             teardown = scene['teardown']
@@ -149,9 +171,16 @@ class CommandParser():
         - `print_result`: outputs the result of this endpoint execution to stdout
         - `check_result`: given a json file, uses `json_utils.check_json()`
             to check that the result respects its pattern.
+
+        Return a boolean (True if an error occurred, else False)
         """
         if self.hooks.get("setup"):
             self.run_hook(self.hooks["setup"], "setup")
+
+        for import_scenario in self.imports:
+            print "Import scenario {}".format(import_scenario.scenario.get('name', import_scenario.scenario_root))
+            if import_scenario.parse() and import_scenario.exit_on_error:
+                return True
 
         print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
 

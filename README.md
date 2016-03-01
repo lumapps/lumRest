@@ -33,6 +33,7 @@ Google.
 The scenario file has to be in `yaml` format. The possible keys are:
 - `name`: the name of the scenario.
 - `service`: describes the service on which you'd like to run the test (see [Service](#service))
+- `import`: include and execute other test case(s). (see [Import](#import))
 - `commands`: the list of commands to be executed (see [Commands](#commands))
 
 ### Service ###
@@ -43,6 +44,13 @@ service:
     version: "v1"
     discovery_url: "https://www.googleapis.com/discovery/v1/apis/urlshortener/v1/rest"
 ```
+
+### Import ###
+Files imported will be executed inside current scenario. It works like setup files, excepted that all files will be interpreted, using their own `service`, `setup`, `import` and `commands`. They will be executed after `setup` and before `commands`.
+
+A common use case is to run again a test file with a different setup, without rewriting all test case.
+You can ommit `commands` if you set `import` entries.
+
 ### Commands ###
 The commands are defined in a list form. Each list entry has a mandatory key being the endpoint to be called and some optional keys:
 - `save_result`: saves the result of this endpoint. Its value is the name used to reference it (see [Save](#save))
