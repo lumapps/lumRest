@@ -60,7 +60,7 @@ class CommandParser():
             sys.exit(0)
 
         if 'commands' not in scene:
-            raise ValueError("The scenario file has to contain a `commands` section")
+            scene['commands'] = []
 
         # authenticate
         self.service = get_service(scene['service'], config.get('auth', None))
@@ -155,7 +155,7 @@ class CommandParser():
 
         print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
 
-        commands = self.scenario['commands']
+        commands = self.scenario.get('commands', [])
         error = False
         for command in commands:
             try:
