@@ -11,6 +11,7 @@ class fmt:
     BLUE = '\033[94m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
+    ORANGE = '\033[33m'
     RED = '\033[91m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
@@ -21,6 +22,7 @@ error_color = fmt.RED
 error_color_detail = fmt.PURPLE
 info_color = fmt.BLUE
 success_color = fmt.GREEN
+warning_color = fmt.ORANGE
 end_color = fmt.END
 yellow = fmt.YELLOW
 bold = fmt.BOLD
@@ -59,14 +61,19 @@ def light_assert(exp, message, exit_on_error=False):
         assert exp, message
         return True
     except AssertionError, e:
-        print(error_color)
-        print("*"*tty_columns)
-        print("* FAIL : ", e.message)
-        print("*"*tty_columns)
-        print(fmt.END)
         if exit_on_error:
+            print(error_color)
+            print("*"*tty_columns)
+            print("* FAIL : ", e.message)
+            print("*"*tty_columns)
+            print(fmt.END)
             raise AssertionError(e.message)
         else:
+            print(warning_color)
+            print("*" * tty_columns)
+            print("* WARNING : ", e.message)
+            print("*" * tty_columns)
+            print(fmt.END)
             return False
 
 
