@@ -51,6 +51,7 @@ class CommandParser():
             "teardown": None,
         }
         self.imports = []
+        self.setup_commands = []
 
         if 'debug' in self.config:
             self.debug = self.config['debug']
@@ -83,7 +84,6 @@ class CommandParser():
             if not isinstance(setup, list):
                 raise ValueError("Setup must be either a list of filenames or a single filename")
 
-            allSetupCommands = []
             for setup_file in setup:
                 setup_file = re.sub(r'^\./', scene_root, setup_file)
                 # setup_file = os.path.join(scene_root, setup_file)
@@ -97,9 +97,7 @@ class CommandParser():
                     setup_yml = yaml.load(f_content)
 
                     if 'commands' in setup_yml:
-                        allSetupCommands.extend(setup_yml['commands'])
-
-            scene['commands'] = allSetupCommands + scene['commands']
+                        self.setup_commands.extend(setup_yml['commands'])
 
         if 'import' in scene:
             imports = scene['import']
@@ -177,14 +175,38 @@ class CommandParser():
         if self.hooks.get("setup"):
             self.run_hook(self.hooks["setup"], "setup")
 
+        print "Running scenario {} setup".format(self.scenario.get('name', self.scenario_root))
+
+        error = self.__parse_commands(self.setup_commands)
+        if error and self.exit_on_error:
+            return error
+
         for import_scenario in self.imports:
             print "Import scenario {}".format(import_scenario.scenario.get('name', import_scenario.scenario_root))
             if import_scenario.parse() and import_scenario.exit_on_error:
                 return True
 
-        print "Running scenario {}".format(self.scenario.get('name', self.scenario_root))
+        print "Running scenario {} commands".format(self.scenario.get('name', self.scenario_root))
 
-        commands = self.scenario.get('commands', [])
+        error = self.__parse_commands(self.scenario.get('commands', []))
+        if error and self.exit_on_error:
+            return error
+
+        if self.hooks.get("teardown"):
+            self.run_hook(self.hooks["teardown"], "teardown")
+
+        return error
+
+    def __parse_commands(self, commands):
+        """
+        Execute a list of commands.
+        If an error occurred, and exit_on_error is set to True, error code will immediately be returned.
+
+        Args:
+            commands: the list of commands to execute
+        Returns:
+            True if an error occurred, else False.
+        """
         error = False
         for command in commands:
             try:
@@ -235,9 +257,6 @@ class CommandParser():
             finally:
                 if error and self.exit_on_error:
                     return error
-
-        if self.hooks.get("teardown"):
-            self.run_hook(self.hooks["teardown"], "teardown")
 
         return error
 

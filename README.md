@@ -57,7 +57,7 @@ setup:
 These setup files are perfect to initialize test cases, for example loading data.
 
 ### Import ###
-Files imported will be executed inside current scenario. It works like setup files, excepted that all files will be interpreted, using their own `service`, `setup`, `import` and `commands`. They will be executed after `setup` and before `commands`.
+Files imported will be executed inside current scenario. It works like setup files, excepted that all files will be interpreted, using their own `service`, `setup`, `import` and `commands`. They will be executed after `setup` and before `commands` of main scenario.
 
 A common use case is to run again a test file with a different setup, without rewriting all test case.
 You can ommit `commands` if you set `import` entries.
