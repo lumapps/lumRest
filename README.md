@@ -148,6 +148,13 @@ The `check_result` json content has some additional parameters that can be used 
     ```json
     "key" : [ "#=2#" ]
     ```
+    Note: you can use inequality operators in place of `=` :
+    ```json
+    "key1" : [ "#>=2#" ]
+    "key2" : [ "#<=2#" ]
+    "key3" : [ "#<2#" ]
+    "key4" : [ "#>2#" ]
+    ```
     checks that there are two and only two objects in the list without checking their content.
     * Lists starting with `"#+#"` check that there is at least one object.
     ```json

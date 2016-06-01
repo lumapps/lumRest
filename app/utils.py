@@ -139,6 +139,30 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                     u'The number of results in path "{}" does not match what expected (there were {} entries rather than {})'.format(path, len(res), int(re.findall('#=([0-9]+)', exp[0])[0])),
                     exit_on_error=exit_on_error)
 
+            elif len(exp) == 1 and re.match('#>=[0-9]+#', pattern):
+                no_error = light_assert(
+                    len(res) >= int(re.findall('#>=([0-9]+)#', exp[0])[0]),
+                    u'The number of results in path "{}" does not match what expected (there were {} entries rather than at least {})'.format(path, len(res), int(re.findall('#>=([0-9]+)', exp[0])[0])),
+                    exit_on_error=exit_on_error)
+
+            elif len(exp) == 1 and re.match('#<=[0-9]+#', pattern):
+                no_error = light_assert(
+                    len(res) <= int(re.findall('#<=([0-9]+)#', exp[0])[0]),
+                    u'The number of results in path "{}" does not match what expected (there were {} entries rather than {} maximum)'.format(path, len(res), int(re.findall('#<=([0-9]+)', exp[0])[0])),
+                    exit_on_error=exit_on_error)
+
+            elif len(exp) == 1 and re.match('#>[0-9]+#', pattern):
+                no_error = light_assert(
+                    len(res) > int(re.findall('#>([0-9]+)#', exp[0])[0]),
+                    u'The number of results in path "{}" does not match what expected (there were {} entries rather than more than {})'.format(path, len(res), int(re.findall('#>([0-9]+)', exp[0])[0])),
+                    exit_on_error=exit_on_error)
+
+            elif len(exp) == 1 and re.match('#<[0-9]+#', pattern):
+                no_error = light_assert(
+                    len(res) < int(re.findall('#<([0-9]+)#', exp[0])[0]),
+                    u'The number of results in path "{}" does not match what expected (there were {} entries rather than less than {})'.format(path, len(res), int(re.findall('#<([0-9]+)', exp[0])[0])),
+                    exit_on_error=exit_on_error)
+
             # Check that we have at least one entry
             elif len(exp) == 1 and pattern == "#+#":
                 no_error = light_assert(
