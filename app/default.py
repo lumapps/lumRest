@@ -607,13 +607,14 @@ class CommandParser():
         parse repeat command:
 
         repeat:
-            mode: until|while (default: while)
+            mode: until|while|loop (default: while)
             delay: <float> (default: 1)
             max: <int> (default: 5)
             conditions:
                 code: <int> (default: 200)
                 message: <str>
                 expression: <str> (python expression)
+                raise_exception: <bool> (default: false)
         """
         mode = repeat.get('mode', 'while')
         delay = repeat.get('delay', 1.0)
@@ -624,6 +625,13 @@ class CommandParser():
         has_message = conditions.get('message') is not None
         message = conditions.get('message', None)
         expression = conditions.get('expression', None)
+        raise_exception = conditions.get('raise_exception', False)
+
+        if mode == 'loop':
+            if maximum == 0:
+                raise ValueError("Maximum cannot be set to zero when using loop mode")
+            if times + 1 >= maximum:
+                return False
 
         if maximum != 0 and times >= maximum:
             raise RuntimeError("Retried {} time(s) without success.".format(maximum))
@@ -636,10 +644,18 @@ class CommandParser():
               'expr': lambda e: self.eval_expr('{{' + e + '}}', container=saved_results)}
 
         def check(l, r):
-            return l == r if mode == 'while' else l != r
+            valid = l == r if mode in ['while', 'loop'] else l != r
+
+            if mode == 'loop' and not valid and not raise_exception:
+                valid = True  # continue 'loop' mode if bad value received and no raise_exception flag
+
+            if raise_exception and not valid:
+                raise RuntimeError("Repeat condition is expecting {}, received {}".format(l, r))
+            else:
+                return valid
 
         def check_bool(l):
-            return check(l, True)
+            return check(True, l)
 
         if has_code and not check(code, status):
             return False
@@ -655,6 +671,8 @@ class CommandParser():
                 for e in expression:
                     exec 'expression = ({})'.format(expression) in ns
                     cont = cont and ns['expression']
+            elif mode == 'loop':
+                cont = True
             else:
                 cont = False
                 for e in expression:

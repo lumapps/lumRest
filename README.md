@@ -208,16 +208,19 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
 ```yaml
   - my.endpoint
     repeat:
-      mode: until|while (default: while)
+      mode: until|while|loop (default: while)
       delay: <float> (default: 1)
       max: <int> (default: 5)
       conditions:
         code: <int> (default: 200)
         message: <str> (default: no message)
         expression: <str> (python expression)
+        raise_exception: <bool> (default: false)
 ```
-- `mode`, specify how to repeat the call, a `while` mode means that if all the conditions are true we repeat, an `until`
-  mode means that we repeat the calls as long as the conditions are false
+- `mode`, specify how to repeat the call
+  * a `while` mode means that if all the conditions are true we repeat
+  * an `until` mode means that we repeat the calls as long as the conditions are false
+  * a `loop` mode means that we repeat the call exactly a given number of times (defined by `max` parameter)
 - `delay`, the time to wait between the calls
 - `max`, the maximum number of retries, set it to `0` for unlimited
 - `conditions`, contain the conditions to check
@@ -236,6 +239,9 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
       - not expr('result.key2') # negate the value of result['key']
     ```
     If a previous `saved_results` value is named `result`, then it will be overriden.
+
+Endpoints calls will continue to run while/until conditions are satisfied, and wait for it.
+To raise an exception if condition is not satisfied, set `raise_exception` flag to `true`.
 
 ###Hooks###
 
