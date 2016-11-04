@@ -7,12 +7,17 @@ import re
 import yaml
 import time
 import apiclient
+
 from httplib import BadStatusLine
-from app.utils import check_order_values
 from jsonpath_rw import jsonpath, parse
+
+from httplib2 import Http
+from apiclient.discovery import build
+from oauth2client.service_account import ServiceAccountCredentials
+
+from app.utils import check_order_values
 import utils as ju
 from utils import pretty_json, check_json
-from app.oauth import OAuth
 
 
 __version__ = '0.110'
@@ -21,17 +26,22 @@ __version__ = '0.110'
 def get_service(service_config, auth_config=None, provider="GOOGLE"):
     if provider == "GOOGLE":
         if auth_config:
-            return OAuth.getService(auth_config['email'],
-                                    service_config['api'],
-                                    service_config['version'],
-                                    auth_config['oauth_scope'],
-                                    auth_config['client_secret'],
-                                    auth_config['client_id'],
-                                    discoveryUrl=service_config['discovery_url'])
+            credentials = ServiceAccountCredentials.from_p12_keyfile(
+                auth_config['client_id'], auth_config['client_secret'],
+                scopes=auth_config['oauth_scope']
+            )
+            delegated_credentials = credentials.create_delegated(auth_config['email'])
+            http_auth = delegated_credentials.authorize(Http())
+
+            build_optional_cfg = {'http': http_auth, 'cache_discovery': False}
+            if service_config['discovery_url']:
+                build_optional_cfg['discoveryServiceUrl'] = service_config['discovery_url']
+
+            service = build(service_config['api'], service_config['version'], **build_optional_cfg)
+            return service
         else:
-            return apiclient.discovery.build(service_config['api'], service_config['version'],
-                                             discoveryServiceUrl=service_config['discovery_url'],
-                                             cache_discovery=False, cache=None)
+            return build(service_config['api'], service_config['version'],
+                         discoveryServiceUrl=service_config['discovery_url'], cache_discovery=False)
 
 
 class CommandParser():
