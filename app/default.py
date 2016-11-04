@@ -9,7 +9,7 @@ import time
 import apiclient
 from httplib import BadStatusLine
 from app.utils import check_order_values
-from jsonpath import jsonpath
+from jsonpath_rw import jsonpath, parse
 import utils as ju
 from utils import pretty_json, check_json
 from app.oauth import OAuth
@@ -592,12 +592,13 @@ class CommandParser():
             expression = expression.replace("as list", "").strip()
 
         try:
-            results = jsonpath(container, expression)
-        except Exception, e:
+            jsonpath_expr = parse(expression)
+            results = jsonpath_expr.find(container)
+        except Exception as e:
             print e
             raise RuntimeError("Error when parsing the expression {}".format(expression))
 
-        if results is False or len(results) == 0:
+        if not results:
             raise RuntimeError("The expression {} gave no result".format(expression))
 
         if as_list:
