@@ -183,6 +183,16 @@ The `check_result` json content has some additional parameters that can be used 
     "key" : [ "#MATCH#", { "key2" : "value" }, { "key3" : "#r#val" }]
     ```
     checks that the result has exactly the two entries, and one result of the list is matching `{ "key2" : "value" }`, and another match `{ "key3" : "#r#val" } pattern`. The order of these entries is not important.
+    * Lists starting with `#MATCH_ANY#` check that at least one entry of the list respect the pattern of corresponding object. For instance, the template:
+    ```json
+    "key" : [ "#MATCH_ANY#", { "key1" : "value" }]
+    ```
+    checks that the result has at least one entry matching `{ "key1" : "value" }`.
+    You can also set several entries. For instance, the template:
+    ```json
+    "key" : [ "#MATCH_ANY#", { "key1" : "value" }, { "key2" : "#r#val", "key3": false }]
+    ```
+    this checks that at least one entry is matching `{ "key1" : "value" }` and at least one entry is matching `{ "key2" : "#r#val", "key3": false }`. An item can match several entries.
 
 One can also check that values in a list are correctly sorted by using `check_order`. Specify a criteria and a sort direction. For example:
 ```yaml
