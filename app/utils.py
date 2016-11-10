@@ -244,6 +244,29 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                     'The results in path "{}" do not match what expected'.format(path),
                     exit_on_error=exit_on_error)
 
+            # It's a mix of MATCH and ANY.
+            # Check at least one item is respecting pattern. No check on number of items matching.
+            elif len(exp) > 0 and pattern == "#MATCH_ANY#":
+                light_assert(
+                    len(res) > 0,
+                    u'No result in path "{}", at least one is expected'.format(path),
+                    exit_on_error=exit_on_error)
+
+                nb_matching = 0
+                entries = xrange(len(res))
+                for iterations in xrange(len(exp)):
+                    for idx in entries:
+                        no_err = check_json(res[idx], exp[iterations], path + "[{}]".format(idx + 1), exit_on_error=False,
+                                            skip_errors=True)
+                        if no_err:
+                            nb_matching += 1
+                            break
+
+                no_error = light_assert(
+                    len(exp) == nb_matching,
+                    'The results in path "{}" do not match what expected'.format(path),
+                    exit_on_error=exit_on_error)
+
         else:
             exp = unicode(exp)
             res = unicode(res)
