@@ -107,7 +107,7 @@ Note: you can ommit `commands` if you set `import` entries.
 #### Save ####
 The option `save_result` takes as argument the name of the result that can be used later. The results are stored in a dictionary. Therefore, any reuse of that name in the `save_result` option will overwrite its previous value.
 #### Print ####
-The option `print_result` takes either a boolean or a jsonpath expression. If the former is given, the script will print the whole json response. If the latter is given, it has to be preceded by a `!expr` keyword and whatever comes after it is interpreted using the [jsonpath](https://pypi.python.org/pypi/jsonpath/) library.
+The option `print_result` takes either a boolean or a jsonpath expression. If the former is given, the script will print the whole json response. If the latter is given, it has to be preceded by a `!expr` keyword and whatever comes after it is interpreted using the [jsonpath](https://pypi.python.org/pypi/jsonpath-rw) library.
 If this option is given as a list, for example
 ```yaml
 print_result:

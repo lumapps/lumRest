@@ -20,7 +20,7 @@ import utils as ju
 from utils import pretty_json, check_json
 
 
-__version__ = '0.110'
+__version__ = '0.111'
 
 
 def get_service(service_config, auth_config=None, provider="GOOGLE"):
