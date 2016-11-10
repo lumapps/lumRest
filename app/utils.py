@@ -273,8 +273,12 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                 print(info_color, path, success_color, bold, "DONE", end_color)
             else:
                 print(info_color, path, error_color, bold, "FAILURE", end_color)
-        else:
-            return no_error
+        elif no_error is False:
+            # break loop only if a test fail, else continue to check other items of `expectation`.
+            return False
+
+    if skip_errors:
+        return no_error
 
 
 def check_order_values(results, directions, paths=None, exit_on_error=False, skip_errors=False):
