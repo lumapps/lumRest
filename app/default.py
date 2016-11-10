@@ -30,8 +30,11 @@ def get_service(service_config, auth_config=None, provider="GOOGLE"):
                 auth_config['client_id'], auth_config['client_secret'],
                 scopes=auth_config['oauth_scope']
             )
-            delegated_credentials = credentials.create_delegated(auth_config['email'])
-            http_auth = delegated_credentials.authorize(Http())
+            if 'email' in auth_config:
+                delegated_credentials = credentials.create_delegated(auth_config['email'])
+                http_auth = delegated_credentials.authorize(Http())
+            else:
+                http_auth = credentials.authorize(Http())
 
             build_optional_cfg = {'http': http_auth, 'cache_discovery': False}
             if service_config['discovery_url']:
