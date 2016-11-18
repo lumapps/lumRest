@@ -237,8 +237,7 @@ class CommandParser():
 
                 delay = None
                 if 'post_delay' in command:
-                    delay = command['post_delay']
-                    command.pop('post_delay')
+                    delay = command.pop('post_delay')
 
                 self.__parse_command(command, service, self.scenario_root)
 
@@ -247,7 +246,7 @@ class CommandParser():
                     time.sleep(delay)
             except AssertionError:
                 error = True
-            except Exception, e:
+            except Exception as e:
                 print "{}{}Unable to execute command:{} {}{}{}\n{}{}{}\n".format(
                     ju.error_color, ju.bold, ju.end_color,
                     ju.error_color_detail, command.keys()[0],
@@ -332,7 +331,6 @@ class CommandParser():
         if hooks and "setup" in hooks:
             self.run_hook(hooks.get("setup"), "setup")
 
-        # import pdb; pdb.set_trace()
         repeat_bool = True
         times = 0
 
@@ -385,7 +383,7 @@ class CommandParser():
                         val = ns.get('body', val)
 
                     else:
-                        if isinstance(val, str) or isinstance(val, unicode):
+                        if isinstance(val, basestring):
                             val = '"' + str(self.eval_expr(val)) + '"'
 
                     endpoint_args.append("{} = {}".format(arg, val))
@@ -411,11 +409,11 @@ class CommandParser():
                     exec "result = {}".format(endpoint) in ns
                     result = ns['result']
                     retry = False
-                except BadStatusLine, e:
+                except BadStatusLine as e:
                     print "RETRYING: {}".format(endpoint)
                     retry = True
                     time.sleep(1)
-                except Exception, e:
+                except Exception as e:
                     retry = False
                     try:
                         message = json.loads(e.content).get('error').get('message')
@@ -485,7 +483,7 @@ class CommandParser():
                         val = None
                         try:
                             val = self.__parse_expression(match.group(1), container=result)
-                        except Exception, e:
+                        except Exception as e:
                             if self.debug:
                                 print traceback.format_exc()
                             print e
@@ -503,7 +501,7 @@ class CommandParser():
                             val = None
                             try:
                                 val = self.__parse_expression(match.group(1), container=result)
-                            except Exception, e:
+                            except Exception as e:
                                 if self.debug:
                                     print traceback.format_exc()
                                 print e
