@@ -385,6 +385,11 @@ class CommandParser():
                     else:
                         if isinstance(val, basestring):
                             val = '"' + str(self.eval_expr(val)) + '"'
+                        elif isinstance(val, list):
+                            # if we have a list here, we want to transform it into arg=[val1,val2]
+                            # resolving each element of the list
+                            val = ','.join([str(self.eval_expr(v)) for v in val])
+                            val = "[{}]".format(val)
 
                     endpoint_args.append("{} = {}".format(arg, val))
 
