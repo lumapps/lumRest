@@ -1,5 +1,4 @@
 PyOpenSSL
 oauth2client
 google-api-python-client
-jsonpath-rw
 PyYAML
