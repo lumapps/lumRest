@@ -1,4 +1,4 @@
 PyOpenSSL
-oauth2client
+oauth2client~=4.0
 google-api-python-client
 PyYAML
