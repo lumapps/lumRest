@@ -5,14 +5,12 @@ class fmt:
     """
     Formating strings
     """
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    ORANGE = '\033[33m'
-    RED = '\033[91m'
+    PURPLE = '\033[35m'
+    CYAN = '\033[36m'
+    BLUE = '\033[34m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    RED = '\033[31m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
@@ -22,7 +20,7 @@ error_color = fmt.RED
 error_color_detail = fmt.PURPLE
 info_color = fmt.BLUE
 success_color = fmt.GREEN
-warning_color = fmt.ORANGE
+warning_color = fmt.YELLOW
 end_color = fmt.END
 yellow = fmt.YELLOW
 bold = fmt.BOLD
