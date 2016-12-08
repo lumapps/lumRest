@@ -1,12 +1,22 @@
 # Endpoint Tester#
 Allows the user to write test scenarios for Google Cloud Endpoints using a combination of `yaml` and `json` files.
 
-# Usage #
-You need, first, to install the single external dependency: `pip install
-pyyaml`. On some systems (such as Ubuntu) you may need to install `python-dev`
-package for `pyyaml` to compile. You can also use your distribution-dependent
-package, for instance `python-yaml` on Ubuntu.
+# Installation #
+List of required system dependencies:
+- gcc
+- libffi-dev
+- libssl-dev
+- python-dev
+- python-pip
 
+On Debian based distribution you can use the following command as root
+to install these dependencies: `apt-get install gcc libffi-dev
+libssl-dev python-dev python-pip`.
+
+Then you can install the python dependencies with: `pip install -r
+requirements.txt`.
+
+# Usage #
 The basic usage can be found by running the script with a `-h` option.
 ```bash
 usage: lumrest.py [-h] [--auth AUTH_CONFIG_FILE] [-X] [SCENARIO_FILE]
