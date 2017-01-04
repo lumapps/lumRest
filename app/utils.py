@@ -274,6 +274,20 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                         'The results in path "{}" match unexpected item'.format(path),
                         exit_on_error=exit_on_error)
 
+            # Negative case of MATCH
+            # check that no item match unexpected pattern. No check on number of items matching.
+            elif len(exp) > 0 and pattern == "#NOT_MATCH#":
+                for iterations, _ in enumerate(res):
+                    for idx, _ in enumerate(exp):
+                        no_err = check_json(res[iterations], exp[idx], path + "[{}]".format(idx + 1),
+                                            exit_on_error=False,
+                                            skip_errors=True)
+
+                        no_error = light_assert(
+                            not no_err,
+                            'The results in path "{}[{}]" match unexpected pattern {}'.format(path, iterations + 1, exp[idx]),
+                            exit_on_error=exit_on_error)
+
         else:
             exp = unicode(exp)
             res = unicode(res)

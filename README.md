@@ -211,6 +211,15 @@ checks that at least one entry is matching `{ "key1" : "value" }` and at least o
 checks that no result is exactly matching `{ "key1" : "value1" }` or `{ "key2" : "#r#val", "key3": false }`.
 You can provide as many items to check as you want.
 
+* Lists starting with `#NOT_MATCH#` check that no result have a pattern matching an entry in the list. For instance, the template:
+```json
+"key" : [ "#NOT_MATCH#", { "key1" : "value1" }, { "key2" : "#r#val", "key3": false } ]
+```
+checks that no result match pattern `{ "key1" : "value1" }` or `{ "key2" : "#r#val", "key3": false }`.
+If results list is empty, test case will be successful. 
+Sort order of results and entries doesn't matter.
+You can provide as many items to check as you want.
+
 ##### Sort order #####
 One can also check that values in a list are correctly sorted by using `check_order`. Specify a criteria and a sort direction. For example:
 ```yaml
