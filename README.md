@@ -204,6 +204,13 @@ You can also set several entries. For instance, the template:
 ```
 checks that at least one entry is matching `{ "key1" : "value" }` and at least one entry is matching `{ "key2" : "#r#val", "key3": false }`. An item can match several entries.
 
+* Lists starting with `"#NOT_ALL#"` check that no entry in the list match a result. For instance, the template:
+```json
+"key" : [ "#NOT_ALL#", { "key1" : "value1" }, { "key2" : "#r#val", "key3": false } ]
+```
+checks that no result is exactly matching `{ "key1" : "value1" }` or `{ "key2" : "#r#val", "key3": false }`.
+You can provide as many items to check as you want.
+
 ##### Sort order #####
 One can also check that values in a list are correctly sorted by using `check_order`. Specify a criteria and a sort direction. For example:
 ```yaml

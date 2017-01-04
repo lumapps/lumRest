@@ -265,6 +265,15 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
                     'The results in path "{}" do not match what expected'.format(path),
                     exit_on_error=exit_on_error)
 
+            # Negative case of ALL
+            # check that no item match unexpected expression
+            elif len(exp) > 0 and pattern == "#NOT_ALL#":
+                for ex in exp:
+                    no_error = light_assert(
+                        not any([r == ex for r in res]),
+                        'The results in path "{}" match unexpected item'.format(path),
+                        exit_on_error=exit_on_error)
+
         else:
             exp = unicode(exp)
             res = unicode(res)
