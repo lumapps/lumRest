@@ -78,9 +78,9 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `export_result`: saves the result to a file, its value is the file name.
 - `print_result`: outputs the result of this endpoint execution to `stdout`  (see [Print](#print))
 - `check_result`: checks that the result respect the given pattern. If a json file is given, reads it and uses it to check  (see [Check](#check))
-- `check_code`: checks the return code form the endpoint. (see [Check](#check))
+- `check_code`: checks the return code form the endpoint. (see [HTTP code](#http-code))
 - `check_message`: checks the return error message. (see [Check](#check))
-- `check_order`: check if a values in a list are correctly sorted. (see [Check](#check))
+- `check_order`: check if a values in a list are correctly sorted. (see [Sort order](#sort-order))
 - `repeat`: recalls the endpoint following a set of conditions. (see [Repeat](#repeat))
 - `description`: a short description of the test case.
 - `eval_expr`: evaluate a python expression after the execution of the test case. (see [Misc](#misc))
@@ -135,75 +135,76 @@ The option `check_result` behaves exactly as the `body` argument of the commands
 
 The `check_result` json content has some additional parameters that can be used to validate that the received response is correct:
 
-- In the case of primitive values (String, Boolean, etc)
-    * Check that `"value"` is exactly what was received
-    ```json
-    "key" : "value"
-    ```
-    * Check that `"value"` maches (regexp) what was received
-    ```json
-    "key" : "#r#value"
-    ```
-    * Check that `"key"` is not set in what was received
-    ```json
-    "key": nil
-    ```
+##### Primitive values (String, Boolean, etc) #####
+* Check that `"value"` is exactly what was received
+```json
+"key" : "value"
+```
+* Check that `"value"` maches (regexp) what was received
+```json
+"key" : "#r#value"
+```
+* Check that `"key"` is not set in what was received
+```json
+"key": nil
+```
 
-- For Lists, we can check almost anything
-    * Empty list means that the result has to be empty
-    ```json
-    "key" : []
-    ```
-    * Lists starting with `"#=<scalar>#"` check that there are as many results as expected objects. This example:
-    ```json
-    "key" : [ "#=2#" ]
-    ```
-    Note: you can use inequality operators in place of `=` :
-    ```json
-    "key1" : [ "#>=2#" ]
-    "key2" : [ "#<=2#" ]
-    "key3" : [ "#<2#" ]
-    "key4" : [ "#>2#" ]
-    ```
-    checks that there are two and only two objects in the list without checking their content.
-    * Lists starting with `"#+#"` check that there is at least one object.
-    ```json
-    "key" : [ "#+#" ]
-    ```
-    * Lists starting with `"#*#"` check that the list can contain any number of elements, including empty ones.
-    ```json
-    "key" : [ "#*#" ]
-    ```
-    * Lists starting with `"#PATTERN#"` check that all the entries of the list respect the pattern of the object that follows.
-    ```json
-    "key" : [ "#PATTERN#", { "key2" : "value", "key3" : "#r#val" }]
-    ```
-    * Lists starting with `"#ALL#"` check that all the entries of the list respect exactly the pattern of each corresponding object in the list. For instance, the template:
-    ```json
-    "key" : [ "#ALL#", obj1, obj2]
-    ```
-    checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
-    * Lists starting with `"#ANY#"` check that at least one entry of the list respect exactly the pattern of corresponding object. For instance, the template:
-    ```json
-    "key" : [ "#ANY#", obj1]
-    ```
-    checks that one of the result items is exactly `obj1`.
-    * Lists starting with `"#MATCH#"` check that all the entries of the list respect the pattern of each corresponding object in the list. For instance, the template:
-    ```json
-    "key" : [ "#MATCH#", { "key2" : "value" }, { "key3" : "#r#val" }]
-    ```
-    checks that the result has exactly the two entries, and one result of the list is matching `{ "key2" : "value" }`, and another match `{ "key3" : "#r#val" } pattern`. The order of these entries is not important.
-    * Lists starting with `#MATCH_ANY#` check that at least one entry of the list respect the pattern of corresponding object. For instance, the template:
-    ```json
-    "key" : [ "#MATCH_ANY#", { "key1" : "value" }]
-    ```
-    checks that the result has at least one entry matching `{ "key1" : "value" }`.
-    You can also set several entries. For instance, the template:
-    ```json
-    "key" : [ "#MATCH_ANY#", { "key1" : "value" }, { "key2" : "#r#val", "key3": false }]
-    ```
-    this checks that at least one entry is matching `{ "key1" : "value" }` and at least one entry is matching `{ "key2" : "#r#val", "key3": false }`. An item can match several entries.
+##### Lists #####
+* Empty list means that the result has to be empty
+```json
+"key" : []
+```
+* Lists starting with `"#=<scalar>#"` check that there are as many results as expected objects. This example:
+```json
+"key" : [ "#=2#" ]
+```
+Note: you can use inequality operators in place of `=` :
+```json
+"key1" : [ "#>=2#" ]
+"key2" : [ "#<=2#" ]
+"key3" : [ "#<2#" ]
+"key4" : [ "#>2#" ]
+```
+checks that there are two and only two objects in the list without checking their content.
+* Lists starting with `"#+#"` check that there is at least one object.
+```json
+"key" : [ "#+#" ]
+```
+* Lists starting with `"#*#"` check that the list can contain any number of elements, including empty ones.
+```json
+"key" : [ "#*#" ]
+```
+* Lists starting with `"#PATTERN#"` check that all the entries of the list respect the pattern of the object that follows.
+```json
+"key" : [ "#PATTERN#", { "key2" : "value", "key3" : "#r#val" }]
+```
+* Lists starting with `"#ALL#"` check that all the entries of the list respect exactly the pattern of each corresponding object in the list. For instance, the template:
+```json
+"key" : [ "#ALL#", obj1, obj2]
+```
+checks that the result has exactly the two entries `obj1` and `obj2`, the order of these entries is not important.
+* Lists starting with `"#ANY#"` check that at least one entry of the list respect exactly the pattern of corresponding object. For instance, the template:
+```json
+"key" : [ "#ANY#", obj1]
+```
+checks that one of the result items is exactly `obj1`.
+* Lists starting with `"#MATCH#"` check that all the entries of the list respect the pattern of each corresponding object in the list. For instance, the template:
+```json
+"key" : [ "#MATCH#", { "key2" : "value" }, { "key3" : "#r#val" }]
+```
+checks that the result has exactly the two entries, and one result of the list is matching `{ "key2" : "value" }`, and another match `{ "key3" : "#r#val" } pattern`. The order of these entries is not important.
+* Lists starting with `#MATCH_ANY#` check that at least one entry of the list respect the pattern of corresponding object. For instance, the template:
+```json
+"key" : [ "#MATCH_ANY#", { "key1" : "value" }]
+```
+checks that the result has at least one entry matching `{ "key1" : "value" }`.
+You can also set several entries. For instance, the template:
+```json
+"key" : [ "#MATCH_ANY#", { "key1" : "value" }, { "key2" : "#r#val", "key3": false }]
+```
+checks that at least one entry is matching `{ "key1" : "value" }` and at least one entry is matching `{ "key2" : "#r#val", "key3": false }`. An item can match several entries.
 
+##### Sort order #####
 One can also check that values in a list are correctly sorted by using `check_order`. Specify a criteria and a sort direction. For example:
 ```yaml
 - my_endpoint:
@@ -214,6 +215,7 @@ One can also check that values in a list are correctly sorted by using `check_or
 checks that response items are sorted by date desc and by name asc.
 If there are multiple criteria, the second (and following) criteria is used in case of equality for the first criteria.
 
+##### HTTP code #####
 One can also check the HTTP code returned by the endpoint by using `check_code`. By default it checks that the endpoint
 returns `200`. To check the return error message, use `check_message`, a good combination can be:
 
@@ -223,7 +225,7 @@ returns `200`. To check the return error message, use `check_message`, a good co
       check_message: "ENDPOINT_NOT_FOUND"
 ```
 
-###Repeat###
+### Repeat ###
 You can use `repeat` to call an endpoint repeatedly, the structure of the command is as follow
 ```yaml
   - my.endpoint
