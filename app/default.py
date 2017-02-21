@@ -180,6 +180,7 @@ class CommandParser():
         - `save_result`: saves the result of this endpoint into a dictionary.
             Its value is the name used to reference it.
         - `print_result`: outputs the result of this endpoint execution to stdout
+        - `print_body`: output the json sent to the endpoint
         - `check_result`: given a json file, uses `json_utils.check_json()`
             to check that the result respects its pattern.
 
@@ -276,6 +277,7 @@ class CommandParser():
         json_pattern = None
         result_name = None
         print_result = False
+        print_body = False
         export_result = None
         eval_expr = None
         pre_eval_expr = None
@@ -285,6 +287,7 @@ class CommandParser():
         description = None
         order = None
         hooks = None
+        body_to_print = False
 
         # load the check_result json file if provided
         if 'check_result' in command:
@@ -312,6 +315,9 @@ class CommandParser():
 
         if 'print_result' in command:
             print_result = command.pop('print_result')
+
+        if 'print_body' in command:
+            print_body = command.pop('print_body')
 
         if 'export_result' in command:
             export_result = command.pop('export_result')
@@ -394,7 +400,8 @@ class CommandParser():
                                     exec e in ns
 
                         val = ns.get('body', val)
-
+                        if print_body is True:
+                            body_to_print = val
                     else:
                         if isinstance(val, basestring):
                             val = '"' + str(self.eval_expr(val)) + '"'
@@ -411,6 +418,12 @@ class CommandParser():
             print "\n{}{}Executing : {}{}".format(ju.bold, ju.yellow, key, ju.end_color)
             if description:
                 print "Description: {}\n".format(description)
+
+            if body_to_print:
+                print ju.info_color
+                print "Body JSON:"
+                pretty_json(body_to_print)
+                print ju.end_color
 
             exec_time = time.time()
             # run the endpoint request
