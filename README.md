@@ -77,6 +77,7 @@ The commands are defined in a list form. Each list entry has a mandatory key bei
 - `save_result`: saves the result of this endpoint. Its value is the name used to reference it (see [Save](#save))
 - `export_result`: saves the result to a file, its value is the file name.
 - `print_result`: outputs the result of this endpoint execution to `stdout`  (see [Print](#print))
+- `print_body`: outputs the body sent to the endpoint to `stdout`  (see [Print](#print))
 - `check_result`: checks that the result respect the given pattern. If a json file is given, reads it and uses it to check  (see [Check](#check))
 - `check_code`: checks the return code form the endpoint. (see [HTTP code](#http-code))
 - `check_message`: checks the return error message. (see [Check](#check))
@@ -130,6 +131,12 @@ To display a property for each item of a list, use `as list` parameter at the en
 ```yaml
 print_result: !expr items.*.id as list
 ```
+
+The option `print_body` expected a boolean, if `true` is provided, it will output the JSON body sent to the endpoint once parsed. It displays JSON only if there is a body in command.
+```yaml
+print_body: true
+```
+
 #### Check ####
 The option `check_result` behaves exactly as the `body` argument of the commands. The json content is parsed and the script checks that every entry in the `check_result` json content is in the response. If some data is in the response and not in the json content, no error is raised.
 
