@@ -100,7 +100,7 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
             continue
 
         # otherwise ensures that the result has the same path
-        elif not light_assert(result.has_key(key),
+        elif not light_assert(result and result.has_key(key),
                               u"The result does not have the path : {}".format(path),
                               exit_on_error=exit_on_error):
             no_error = False
