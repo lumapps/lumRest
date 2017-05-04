@@ -52,6 +52,15 @@ class CommandParser():
     The Parser class
     """
 
+    @staticmethod
+    def get_filepath(scene_root, path, strict=True):
+        paths = [re.sub(r'^\./', scene_root, path), os.path.abspath(path), os.path.abspath(os.path.join(scene_root, path))]
+        for path in paths:
+            if os.path.isfile(path):
+                return path
+        if strict:
+            raise RuntimeError("{} cannot be found in any of the hintpaths ({})".format(path, paths))
+
     def __init__(self, config, scene, scene_root, exit_on_error=False):
         self.output_results = {}
         self.expression_matcher = re.compile("{{([^{}]*)}}")
@@ -98,10 +107,7 @@ class CommandParser():
                 raise ValueError("Setup must be either a list of filenames or a single filename")
 
             for setup_file in setup:
-                setup_file = re.sub(r'^\./', scene_root, setup_file)
-                # setup_file = os.path.join(scene_root, setup_file)
-                if not os.path.isfile(setup_file):
-                    raise RuntimeError("{} does not exist".format(setup_file))
+                setup_file = self.get_filepath(scene_root, setup_file)
 
                 with open(setup_file, 'r') as f:
                     f_content = f.read()
@@ -121,9 +127,7 @@ class CommandParser():
                 raise ValueError("Imports must be either a list of filenames or a single filename")
 
             for import_file in imports:
-                import_file = re.sub(r'^\./', scene_root, import_file)
-                if not os.path.isfile(import_file):
-                    raise RuntimeError("{} does not exist".format(import_file))
+                import_file = self.get_filepath(scene_root, import_file)
 
                 with open(import_file, 'r') as f:
                     f_content = f.read()
@@ -143,10 +147,7 @@ class CommandParser():
                 raise ValueError("teardown must be either a list of filenames or a single filename")
 
             for teardown_file in teardown:
-                teardown_file = os.path.join(scene_root, teardown_file)
-
-                if not os.path.isfile(teardown_file):
-                    raise RuntimeError("{} does not exist".format(teardown_file))
+                teardown_file = self.get_filepath(scene_root, teardown_file)
 
                 with open(teardown_file, 'r') as f:
                     teardown_yml = yaml.load(f)
@@ -295,11 +296,7 @@ class CommandParser():
             if isinstance(check_json_val, dict):
                 json_pattern = check_json_val
             elif isinstance(check_json_val, str) or isinstance(check_json_val, unicode):
-                check_json_file = os.path.join(scenario_root, check_json_val)
-
-                # check that there is a check file
-                if not os.path.isfile(check_json_file):
-                    raise ValueError("{} does not exist".format(check_json_file))
+                check_json_file = self.get_filepath(self.scenario_root, check_json_val)
 
                 with open(check_json_file, 'r') as check:
                     json_pattern = json.load(check)
@@ -372,13 +369,11 @@ class CommandParser():
                                 # raises a ValueError, to be catched upper in the stack
                                 val = self.__parse_expression(match.group(1))
                             else:
-                                body_file = re.sub(r'^\./', "{}/".format(scenario_root), val)
-                                if not os.path.isfile(body_file):
-                                    print "{} does not exist".format(body_file)
-                                    continue
+                                body_file = self.get_filepath(self.scenario_root, val, strict=False)
 
-                                with open(body_file, 'r') as body:
-                                    val = json.load(body)
+                                if body_file:
+                                    with open(body_file, 'r') as body:
+                                        val = json.load(body)
 
                         # parse expressions in the body
                         val = self._parse_body(val)
