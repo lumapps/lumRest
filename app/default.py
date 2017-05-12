@@ -51,12 +51,18 @@ class CommandParser():
     """
     The Parser class
     """
-
-    @staticmethod
-    def get_filepath(scene_root, path, strict=True):
+    _foundpaths = []
+    def get_filepath(self, scene_root, path, strict=True):
         paths = [re.sub(r'^\./', scene_root, path), os.path.abspath(path), os.path.abspath(os.path.join(scene_root, path))]
+        paths.extend([os.path.abspath(os.path.join(folder, path)) for folder in self._foundpaths])
         for path in paths:
             if os.path.isfile(path):
+                # we don't keep track of the file where the command is kept
+                # thus we need an hack to keep track of the found files which could reference it
+                # !!! the resulting path could be ambiguous
+                _, ext = os.path.splitext(path)
+                if ext == '.yaml':
+                    self._foundpaths.append(os.path.dirname(path))
                 return path
         if strict:
             raise RuntimeError("{} cannot be found in any of the hintpaths ({})".format(path, paths))
@@ -369,7 +375,7 @@ class CommandParser():
                                 # raises a ValueError, to be catched upper in the stack
                                 val = self.__parse_expression(match.group(1))
                             else:
-                                body_file = self.get_filepath(self.scenario_root, val, strict=False)
+                                body_file = self.get_filepath(self.scenario_root, val)
 
                                 if body_file:
                                     with open(body_file, 'r') as body:
