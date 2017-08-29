@@ -110,7 +110,9 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
         res = result[key]
 
         if isinstance(exp, dict):
-            check_json(res, exp, path, exit_on_error=exit_on_error)
+            no_err = check_json(res, exp, path, exit_on_error=exit_on_error, skip_errors=skip_errors)
+            if not no_err and not exit_on_error and skip_errors:
+                no_error = False
 
         elif isinstance(exp, list):
             pattern = ""
