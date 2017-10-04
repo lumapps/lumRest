@@ -193,9 +193,11 @@ def check_json(result, expectation, path="$", exit_on_error=False, skip_errors=F
 
                 iterations = 0
                 entries = range(len(res))
+                exp_cpy = exp[:]
                 while iterations < len(res):
+                    exp_val = exp_cpy.pop()
                     for idx in entries:
-                        no_err = check_json(res[idx], exp[idx], path + "[{}]".format(idx + 1), exit_on_error=exit_on_error,
+                        no_err = check_json(res[idx], exp_val, path + "[{}]".format(idx + 1), exit_on_error=exit_on_error,
                                 skip_errors=True)
                         if no_err:
                             entries.remove(idx)
