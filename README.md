@@ -1,4 +1,4 @@
-# Endpoint Tester#
+# Endpoint Tester #
 Allows the user to write test scenarios for Google Cloud Endpoints using a combination of `yaml` and `json` files.
 
 # Installation #
@@ -288,7 +288,7 @@ You can use `repeat` to call an endpoint repeatedly, the structure of the comman
 Endpoints calls will continue to run while/until conditions are satisfied, and wait for it.
 To raise an exception if condition is not satisfied, set `raise_exception` flag to `true`.
 
-###Hooks###
+### Hooks ###
 
 You can  execute a shell script before and after a scenario execution using hooks.
 
@@ -305,7 +305,7 @@ You can use these commands to initialize and reset your test environment.
 
 You can also set hooks for a single command, they will be executed before and after the command execution.
 
-###Misc###
+### Misc ###
 If you want to evaluate an expression before the endpoint is executed, then `pre_eval_expr` is here for you. For
 example:
 ```yaml
